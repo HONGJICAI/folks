@@ -8,7 +8,7 @@ import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
 import '../widgets/event_card.dart';
-import 'event_form.dart';
+import 'event_detail.dart';
 import 'person_form.dart';
 
 /// 成员详情页：头部资料 + 差额清算面板 + 个人时光轴。
@@ -58,11 +58,11 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     if (saved == true) _reload();
   }
 
-  Future<void> _editEvent(Event event) async {
-    final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => EventFormPage(existing: event)),
+  Future<void> _openEvent(Event event) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => EventDetailPage(eventId: event.id)),
     );
-    if (saved == true) _reload();
+    _reload(); // 详情里可能编辑/删除
   }
 
   Future<void> _deletePerson() async {
@@ -139,8 +139,7 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
               if (person.group == PersonGroup.family)
                 _Relations(person: person, byId: data.byId, onTap: _open),
               _ContactInfo(person: person),
-              if (data.balance.totalIncome > 0 || data.balance.totalExpense > 0)
-                ...[
+              if (data.balance.hasAny) ...[
                 const SizedBox(height: Dim.gap),
                 _BalancePanel(balance: data.balance),
               ],
@@ -161,7 +160,7 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                   EventCard(
                     event: e,
                     byId: data.byId,
-                    onTap: () => _editEvent(e),
+                    onTap: () => _openEvent(e),
                   ),
                   const SizedBox(height: Dim.gap),
                 ],
@@ -295,7 +294,7 @@ class _ContactInfo extends StatelessWidget {
   }
 }
 
-/// 差额清算面板：净人情往来一眼可见。
+/// 人情往来面板：客观呈现你支出 / 收到的总额，不做顺差/逆差的金钱判断。
 class _BalancePanel extends StatelessWidget {
   const _BalancePanel({required this.balance});
   final PersonBalance balance;
@@ -304,11 +303,6 @@ class _BalancePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final net = balance.net;
-    final netColor = balance.isDeficit
-        ? scheme.error
-        : (balance.isSurplus ? Colors.green.shade600 : scheme.onSurface);
-    final label = balance.isDeficit ? '逆差' : (balance.isSurplus ? '顺差' : '持平');
 
     return Card(
       color: scheme.primary.withValues(alpha: 0.06),
@@ -317,26 +311,12 @@ class _BalancePanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('净人情往来', style: theme.textTheme.bodySmall),
-            const SizedBox(height: 6),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  '${net.abs().toStringAsFixed(0)} 元',
-                  style: theme.textTheme.headlineSmall
-                      ?.copyWith(color: netColor, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(width: 8),
-                Text(label, style: TextStyle(color: netColor)),
-              ],
-            ),
-            const Divider(height: 24),
+            Text('人情往来', style: theme.textTheme.bodySmall),
+            const SizedBox(height: Dim.gap),
             Row(
               children: [
                 _Stat(label: '你支出', value: balance.totalExpense),
-                const SizedBox(width: 24),
+                const SizedBox(width: 32),
                 _Stat(label: '你收到', value: balance.totalIncome),
               ],
             ),

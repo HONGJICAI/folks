@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import 'local_image.dart';
 
 /// 回忆 / 人情往来事件卡片。回忆 Tab 和成员详情页的时光轴共用。
 class EventCard extends StatelessWidget {
@@ -78,6 +79,18 @@ class EventCard extends StatelessWidget {
                     Text(event.detail!,
                         style: theme.textTheme.bodyMedium
                             ?.copyWith(color: scheme.onSurfaceVariant)),
+                  ],
+                  if (event.photoPaths.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 72,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: event.photoPaths.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 6),
+                        itemBuilder: (_, i) => LocalImage(event.photoPaths[i]),
+                      ),
+                    ),
                   ],
                 ],
               ),

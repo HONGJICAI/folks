@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../data/repository.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import '../widgets/local_image.dart';
 
 /// 记一笔回忆 / 人情往来：新增或编辑。传 [existing] 进入编辑模式。
 /// 返回 true 表示已保存。
@@ -30,6 +32,7 @@ class _EventFormPageState extends State<EventFormPage> {
   MoneyDirection _direction = MoneyDirection.expense;
   late DateTime _occurDate;
   final Set<int> _selected = {};
+  final List<String> _photos = []; // 本地图片路径
   List<Person> _people = const [];
 
   bool get _isMoney => _type == EventType.material;
@@ -48,6 +51,7 @@ class _EventFormPageState extends State<EventFormPage> {
       _amount.text = e.amount?.toStringAsFixed(0) ?? '';
       _occurDate = e.occurDate;
       _selected.addAll(e.boundPersonIds);
+      _photos.addAll(e.photoPaths);
     } else {
       _occurDate = DateTime.now();
     }
@@ -65,6 +69,13 @@ class _EventFormPageState extends State<EventFormPage> {
     super.dispose();
   }
 
+  Future<void> _addPhotos() async {
+    final picked = await ImagePicker().pickMultiImage();
+    if (picked.isNotEmpty) {
+      setState(() => _photos.addAll(picked.map((x) => x.path)));
+    }
+  }
+
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -74,30 +85,6 @@ class _EventFormPageState extends State<EventFormPage> {
       helpText: '事件发生日期',
     );
     if (picked != null) setState(() => _occurDate = picked);
-  }
-
-  Future<void> _delete() async {
-    final e = widget.existing;
-    if (e == null) return;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('删除记录'),
-        content: Text('确定删除「${e.title}」吗？'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('取消')),
-          FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('删除')),
-        ],
-      ),
-    );
-    if (ok == true) {
-      await _repo.deleteEvent(e.id);
-      if (mounted) Navigator.of(context).pop(true);
-    }
   }
 
   Future<void> _save() async {
@@ -116,6 +103,7 @@ class _EventFormPageState extends State<EventFormPage> {
       detail: _detail.text.trim().isEmpty ? null : _detail.text.trim(),
       occurDate: _occurDate,
       boundPersonIds: _selected.toList(),
+      photoPaths: List.of(_photos),
       direction: _isMoney ? _direction : null,
       amount: _isMoney ? double.tryParse(_amount.text.trim()) : null,
     );
@@ -136,12 +124,6 @@ class _EventFormPageState extends State<EventFormPage> {
       appBar: AppBar(
         title: Text(widget.isEditing ? '编辑记录' : '记一笔'),
         actions: [
-          if (widget.isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: '删除',
-              onPressed: _delete,
-            ),
           TextButton(onPressed: _save, child: const Text('保存')),
         ],
       ),
@@ -222,6 +204,47 @@ class _EventFormPageState extends State<EventFormPage> {
                   ),
               ],
             ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Text('照片', style: Theme.of(context).textTheme.titleMedium),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: _addPhotos,
+                  icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                  label: const Text('添加'),
+                ),
+              ],
+            ),
+            if (_photos.isNotEmpty)
+              SizedBox(
+                height: 80,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _photos.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (_, i) => Stack(
+                    children: [
+                      LocalImage(_photos[i], size: 80),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _photos.removeAt(i)),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close,
+                                size: 16, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             const SizedBox(height: Dim.gap),
             TextFormField(
               controller: _detail,

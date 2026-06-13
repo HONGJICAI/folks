@@ -38,6 +38,12 @@ dependencies:
   # 状态管理：官方推荐的入门方案，用于把 Repository 注入全 App 并驱动界面刷新。
   provider: ^6.1.2
 
+  # 选图：回忆/事件添加照片。支持 web 与 Android。
+  image_picker: ^1.1.2
+
+  # 导出/打开原图（web 新标签页可另存；移动端外部打开）。
+  url_launcher: ^6.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

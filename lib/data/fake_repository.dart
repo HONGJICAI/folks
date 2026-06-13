@@ -127,6 +127,7 @@ class FakeRepository implements FolksRepository {
       amount: 5000,
       boundPersonIds: [cousin.id, cousinHusband.id],
       detail: '婚礼在老家办的，随了 5000。',
+      photoPaths: ['https://picsum.photos/seed/folks-wedding/400/400'],
     ));
     _put2(Event(
       id: _nextEventId,
@@ -144,6 +145,11 @@ class FakeRepository implements FolksRepository {
       occurDate: DateTime(2023, 5, 1),
       boundPersonIds: [cousin.id, cousinHusband.id],
       detail: '小辈狗蛋很喜欢，玩了一整天。',
+      photoPaths: const [
+        'https://picsum.photos/seed/folks-trip1/400/400',
+        'https://picsum.photos/seed/folks-trip2/400/400',
+        'https://picsum.photos/seed/folks-trip3/400/400',
+      ],
     ));
     _put2(Event(
       id: _nextEventId,

@@ -7,6 +7,7 @@ import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../widgets/empty_hint.dart';
 import '../widgets/event_card.dart';
+import 'event_detail.dart';
 import 'event_form.dart';
 
 /// 回忆 Tab：人情时光机。所有事件按日期倒序展示，金钱往来带方向与金额。
@@ -57,11 +58,36 @@ class _MemoryTabState extends State<MemoryTab> {
     if (added == true) _reload();
   }
 
-  Future<void> _editEvent(Event event) async {
-    final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => EventFormPage(existing: event)),
+  Future<void> _openEvent(Event event) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => EventDetailPage(eventId: event.id)),
     );
-    if (saved == true) _reload();
+    _reload(); // 详情里可能编辑/删除
+  }
+
+  /// 按 年-月 分组，事件已按日期倒序；月份变化处插入「YYYY年M月」分割标题。
+  List<Widget> _buildTimeline(List<Event> events, Map<int, Person> byId) {
+    final children = <Widget>[];
+    int? lastYear, lastMonth;
+    for (final e in events) {
+      final y = e.occurDate.year;
+      final m = e.occurDate.month;
+      if (y != lastYear || m != lastMonth) {
+        if (children.isNotEmpty) children.add(const SizedBox(height: 20));
+        children.add(_MonthHeader(year: y, month: m));
+        children.add(const SizedBox(height: Dim.gap));
+        lastYear = y;
+        lastMonth = m;
+      } else {
+        children.add(const SizedBox(height: Dim.gap));
+      }
+      children.add(EventCard(
+        event: e,
+        byId: byId,
+        onTap: () => _openEvent(e),
+      ));
+    }
+    return children;
   }
 
   @override
@@ -109,15 +135,9 @@ class _MemoryTabState extends State<MemoryTab> {
                   ),
                 ),
               Expanded(
-                child: ListView.separated(
+                child: ListView(
                   padding: const EdgeInsets.all(Dim.pad),
-                  itemCount: shown.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: Dim.gap),
-                  itemBuilder: (_, i) => EventCard(
-                    event: shown[i],
-                    byId: byId,
-                    onTap: () => _editEvent(shown[i]),
-                  ),
+                  children: _buildTimeline(shown, byId),
                 ),
               ),
             ],
@@ -129,6 +149,27 @@ class _MemoryTabState extends State<MemoryTab> {
         onPressed: _addEvent,
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+/// 时光轴的年/月分割标题，如「2024年9月」。
+class _MonthHeader extends StatelessWidget {
+  const _MonthHeader({required this.year, required this.month});
+  final int year;
+  final int month;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Text('$year年$month月',
+            style: TextStyle(
+                color: scheme.primary, fontWeight: FontWeight.w600)),
+        const SizedBox(width: 8),
+        Expanded(child: Divider(color: scheme.outlineVariant)),
+      ],
     );
   }
 }

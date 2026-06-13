@@ -6,9 +6,13 @@ import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
 
-/// 记一笔回忆 / 人情往来。返回 true 表示已新增。
+/// 记一笔回忆 / 人情往来：新增或编辑。传 [existing] 进入编辑模式。
+/// 返回 true 表示已保存。
 class EventFormPage extends StatefulWidget {
-  const EventFormPage({super.key});
+  const EventFormPage({super.key, this.existing});
+
+  final Event? existing;
+  bool get isEditing => existing != null;
 
   @override
   State<EventFormPage> createState() => _EventFormPageState();
@@ -34,7 +38,20 @@ class _EventFormPageState extends State<EventFormPage> {
   void initState() {
     super.initState();
     _repo = context.read<FolksRepository>();
-    _occurDate = DateTime.now();
+
+    final e = widget.existing;
+    if (e != null) {
+      _type = e.type;
+      _title.text = e.title;
+      _detail.text = e.detail ?? '';
+      _direction = e.direction ?? MoneyDirection.expense;
+      _amount.text = e.amount?.toStringAsFixed(0) ?? '';
+      _occurDate = e.occurDate;
+      _selected.addAll(e.boundPersonIds);
+    } else {
+      _occurDate = DateTime.now();
+    }
+
     _repo.getAllPersons().then((list) {
       if (mounted) setState(() => _people = list);
     });
@@ -59,6 +76,30 @@ class _EventFormPageState extends State<EventFormPage> {
     if (picked != null) setState(() => _occurDate = picked);
   }
 
+  Future<void> _delete() async {
+    final e = widget.existing;
+    if (e == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('删除记录'),
+        content: Text('确定删除「${e.title}」吗？'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('删除')),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await _repo.deleteEvent(e.id);
+      if (mounted) Navigator.of(context).pop(true);
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selected.isEmpty) {
@@ -69,7 +110,7 @@ class _EventFormPageState extends State<EventFormPage> {
     }
 
     final draft = Event(
-      id: 0,
+      id: widget.existing?.id ?? 0,
       type: _type,
       title: _title.text.trim(),
       detail: _detail.text.trim().isEmpty ? null : _detail.text.trim(),
@@ -78,7 +119,11 @@ class _EventFormPageState extends State<EventFormPage> {
       direction: _isMoney ? _direction : null,
       amount: _isMoney ? double.tryParse(_amount.text.trim()) : null,
     );
-    await _repo.addEvent(draft);
+    if (widget.isEditing) {
+      await _repo.updateEvent(draft);
+    } else {
+      await _repo.addEvent(draft);
+    }
     if (mounted) Navigator.of(context).pop(true);
   }
 
@@ -89,8 +134,14 @@ class _EventFormPageState extends State<EventFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('记一笔'),
+        title: Text(widget.isEditing ? '编辑记录' : '记一笔'),
         actions: [
+          if (widget.isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: '删除',
+              onPressed: _delete,
+            ),
           TextButton(onPressed: _save, child: const Text('保存')),
         ],
       ),

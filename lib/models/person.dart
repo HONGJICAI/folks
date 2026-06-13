@@ -32,6 +32,9 @@ enum PersonGroup {
 }
 
 class Person {
+  /// copyWith 哨兵：区分"参数省略"与"显式传 null"。
+  static const Object _unset = Object();
+
   final int id;
   final String realName;
 
@@ -102,6 +105,8 @@ class Person {
     return age;
   }
 
+  /// 关系字段（[fatherId]/[motherId]/[spouseId]）用哨兵区分"不改"与"清空"：
+  /// 省略 = 保持原值；显式传 `null` = 真正清空。普通 `?? this.x` 写法做不到后者。
   Person copyWith({
     int? id,
     String? realName,
@@ -111,9 +116,9 @@ class Person {
     String? customAppellation,
     String? memo,
     PersonGroup? group,
-    int? fatherId,
-    int? motherId,
-    int? spouseId,
+    Object? fatherId = _unset,
+    Object? motherId = _unset,
+    Object? spouseId = _unset,
     bool? marriedIn,
     String? phone,
     String? email,
@@ -128,9 +133,9 @@ class Person {
       customAppellation: customAppellation ?? this.customAppellation,
       memo: memo ?? this.memo,
       group: group ?? this.group,
-      fatherId: fatherId ?? this.fatherId,
-      motherId: motherId ?? this.motherId,
-      spouseId: spouseId ?? this.spouseId,
+      fatherId: identical(fatherId, _unset) ? this.fatherId : fatherId as int?,
+      motherId: identical(motherId, _unset) ? this.motherId : motherId as int?,
+      spouseId: identical(spouseId, _unset) ? this.spouseId : spouseId as int?,
       marriedIn: marriedIn ?? this.marriedIn,
       phone: phone ?? this.phone,
       email: email ?? this.email,

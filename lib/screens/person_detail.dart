@@ -8,6 +8,8 @@ import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
 import '../widgets/event_card.dart';
+import 'event_form.dart';
+import 'person_form.dart';
 
 /// 成员详情页：头部资料 + 差额清算面板 + 个人时光轴。
 class PersonDetailPage extends StatefulWidget {
@@ -38,6 +40,55 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     _future = _load();
   }
 
+  Person? _loaded; // 最近一次加载到的成员，供编辑按钮使用
+
+  void _reload() {
+    if (!mounted) return;
+    setState(() {
+      _future = _load();
+    });
+  }
+
+  Future<void> _editPerson() async {
+    final p = _loaded;
+    if (p == null) return;
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => PersonFormPage(existing: p)),
+    );
+    if (saved == true) _reload();
+  }
+
+  Future<void> _editEvent(Event event) async {
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => EventFormPage(existing: event)),
+    );
+    if (saved == true) _reload();
+  }
+
+  Future<void> _deletePerson() async {
+    final p = _loaded;
+    if (p == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('删除成员'),
+        content: Text('确定删除「${p.displayName}」吗？\n与 TA 的亲属/配偶关系会被解除，回忆记录里也会移除 TA。'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('删除')),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await _repo.deletePerson(p.id);
+      if (mounted) Navigator.of(context).pop(true); // 返回列表（调用方会刷新）
+    }
+  }
+
   Future<_DetailData> _load() async {
     final person = await _repo.getPerson(widget.personId);
     final events = await _repo.getEventsByPerson(widget.personId);
@@ -59,9 +110,12 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: '编辑',
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('「编辑资料」待实现')),
-            ),
+            onPressed: _editPerson,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: '删除',
+            onPressed: _deletePerson,
           ),
         ],
       ),
@@ -73,6 +127,7 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
           }
           final data = snap.data!;
           final person = data.person;
+          _loaded = person;
           if (person == null) {
             return const Center(child: Text('该成员已不存在'));
           }
@@ -103,7 +158,11 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                 )
               else
                 for (final e in data.events) ...[
-                  EventCard(event: e, byId: data.byId),
+                  EventCard(
+                    event: e,
+                    byId: data.byId,
+                    onTap: () => _editEvent(e),
+                  ),
                   const SizedBox(height: Dim.gap),
                 ],
             ],

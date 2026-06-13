@@ -4,20 +4,31 @@
 /// 替换为真实数据库时，只需另写一个 implements [FolksRepository] 的类。
 library;
 
+import 'package:flutter/foundation.dart';
+
 import '../models/balance.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import 'repository.dart';
+
+/// 暴露 notifyListeners 的小通知器（ChangeNotifier 的该方法是 protected）。
+class _ChangeBus extends ChangeNotifier {
+  void ping() => notifyListeners();
+}
 
 class FakeRepository implements FolksRepository {
   FakeRepository() {
     _seed();
   }
 
+  final _ChangeBus _bus = _ChangeBus();
   final Map<int, Person> _persons = {};
   final Map<int, Event> _events = {};
   int _personSeq = 0;
   int _eventSeq = 0;
+
+  @override
+  Listenable get changes => _bus;
 
   int get _nextPersonId => ++_personSeq;
   int get _nextEventId => ++_eventSeq;
@@ -180,12 +191,14 @@ class FakeRepository implements FolksRepository {
   Future<Person> addPerson(Person person) async {
     final created = person.copyWith(id: _nextPersonId);
     _persons[created.id] = created;
+    _bus.ping();
     return created;
   }
 
   @override
   Future<void> updatePerson(Person person) async {
     _persons[person.id] = person;
+    _bus.ping();
   }
 
   @override
@@ -199,7 +212,7 @@ class FakeRepository implements FolksRepository {
         spouseId: p.spouseId == id ? null : p.spouseId,
       );
     }
-    // 从事件绑定中移除。
+    // 从事件绑定中移除（按设计：解绑，不删除 event —— 留住共同回忆）。
     for (final e in _events.values.toList()) {
       if (e.boundPersonIds.contains(id)) {
         _events[e.id] = e.copyWith(
@@ -207,6 +220,7 @@ class FakeRepository implements FolksRepository {
         );
       }
     }
+    _bus.ping();
   }
 
   // ============ 家族 ============
@@ -223,6 +237,7 @@ class FakeRepository implements FolksRepository {
     if (child != null) {
       _persons[childId] = child.copyWith(fatherId: created.id);
     }
+    _bus.ping();
     return created;
   }
 
@@ -233,6 +248,7 @@ class FakeRepository implements FolksRepository {
     if (child != null) {
       _persons[childId] = child.copyWith(motherId: created.id);
     }
+    _bus.ping();
     return created;
   }
 
@@ -248,7 +264,35 @@ class FakeRepository implements FolksRepository {
   }
 
   @override
-  Future<void> setSpouse(int aId, int bId) async => _link(aId, bId);
+  Future<void> setSpouse(int aId, int bId) async {
+    if (_persons[aId] == null || _persons[bId] == null) return;
+    // 先解除双方各自的旧配偶（若不是对方），避免留下单向悬挂指针。
+    _unlinkSpouse(aId, keep: bId);
+    _unlinkSpouse(bId, keep: aId);
+    _persons[aId] = _persons[aId]!.copyWith(spouseId: bId);
+    _persons[bId] = _persons[bId]!.copyWith(spouseId: aId);
+    _bus.ping();
+  }
+
+  @override
+  Future<void> clearSpouse(int personId) async {
+    _unlinkSpouse(personId);
+    _bus.ping();
+  }
+
+  /// 解除 [personId] 的配偶关系（双向清干净）。
+  /// [keep]：若其当前配偶正是 keep，则跳过（用于"改成同一个人"的幂等场景）。
+  void _unlinkSpouse(int personId, {int? keep}) {
+    final p = _persons[personId];
+    if (p == null) return;
+    final old = p.spouseId;
+    if (old == null || old == keep) return;
+    final partner = _persons[old];
+    if (partner != null && partner.spouseId == personId) {
+      _persons[old] = partner.copyWith(spouseId: null); // 清对方回指
+    }
+    _persons[personId] = p.copyWith(spouseId: null);
+  }
 
   @override
   Future<void> setBloodPrimary(int personId) async {
@@ -259,6 +303,7 @@ class FakeRepository implements FolksRepository {
     if (spouseId != null && _persons[spouseId] != null) {
       _persons[spouseId] = _persons[spouseId]!.copyWith(marriedIn: true);
     }
+    _bus.ping();
   }
 
   void _link(int aId, int bId) {
@@ -302,17 +347,20 @@ class FakeRepository implements FolksRepository {
   Future<Event> addEvent(Event event) async {
     final created = event.copyWith(id: _nextEventId);
     _events[created.id] = created;
+    _bus.ping();
     return created;
   }
 
   @override
   Future<void> updateEvent(Event event) async {
     _events[event.id] = event;
+    _bus.ping();
   }
 
   @override
   Future<void> deleteEvent(int id) async {
     _events.remove(id);
+    _bus.ping();
   }
 
   // ============ 差额清算 ============

@@ -5,11 +5,16 @@
 /// 后端阶段换成 SqliteRepository 实现即可，**UI 一行都不用改**。
 library;
 
+import 'package:flutter/foundation.dart';
+
 import '../models/balance.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 
 abstract class FolksRepository {
+  /// 数据变更通知：任意增 / 删 / 改后触发，UI 据此刷新（跨 Tab 实时同步）。
+  Listenable get changes;
+
   // ============ 人物（通用） ============
 
   Future<List<Person>> getAllPersons();
@@ -44,8 +49,11 @@ abstract class FolksRepository {
   /// [throughFather] 决定挂在父亲还是母亲名下。
   Future<Person> addChild(int parentId, Person child, {bool throughFather = true});
 
-  /// 设置配偶关系（双向自动写入两人的 spouseId）。
+  /// 设置配偶关系（双向写入；并自动解除双方原有的旧配偶，避免悬挂指针）。
   Future<void> setSpouse(int aId, int bId);
+
+  /// 解除某人的配偶关系（双向清除）。
+  Future<void> clearSpouse(int personId);
 
   /// 把某人指定为其夫妻里的"血亲主位"（marriedIn=false），配偶置为姻亲（marriedIn=true）。
   /// 家族树里"主副对调"即调用此方法把副位提升为主位。

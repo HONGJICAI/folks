@@ -29,10 +29,20 @@ class _FamilyTabState extends State<FamilyTab> {
     super.initState();
     _repo = context.read<FolksRepository>();
     _future = _repo.getPersonsByGroup(PersonGroup.family); // 首帧直接赋值，不用 setState
+    _repo.changes.addListener(_reload); // 任意数据变更后自动刷新
+  }
+
+  @override
+  void dispose() {
+    _repo.changes.removeListener(_reload);
+    super.dispose();
   }
 
   void _reload() {
-    setState(() => _future = _repo.getPersonsByGroup(PersonGroup.family));
+    if (!mounted) return;
+    setState(() {
+      _future = _repo.getPersonsByGroup(PersonGroup.family);
+    });
   }
 
   Future<void> _promote(int personId) async {
@@ -77,6 +87,7 @@ class _FamilyTabState extends State<FamilyTab> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_family',
         onPressed: _addMember,
         child: const Icon(Icons.person_add),
       ),
@@ -116,10 +127,12 @@ class _FamilyTabState extends State<FamilyTab> {
       }
 
       final secId = secondary?.id;
+      final primaryId = primary.id;
       rows.add(_FamilyRow(
         primary: primary,
         secondary: secondary,
         depth: depth,
+        onOpen: () => _openPerson(primaryId),
         onSwap: secId == null ? null : () => _promote(secId),
       ));
 
@@ -154,6 +167,14 @@ class _FamilyTabState extends State<FamilyTab> {
     );
     if (added == true) _reload();
   }
+
+  /// 打开详情页，返回后刷新（详情页里可能编辑/调换了关系）。
+  Future<void> _openPerson(int personId) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => PersonDetailPage(personId: personId)),
+    );
+    _reload();
+  }
 }
 
 class _FamilyRow extends StatelessWidget {
@@ -161,12 +182,14 @@ class _FamilyRow extends StatelessWidget {
     required this.primary,
     this.secondary,
     required this.depth,
+    this.onOpen,
     this.onSwap,
   });
 
   final Person primary;
   final Person? secondary;
   final int depth;
+  final VoidCallback? onOpen;
   final VoidCallback? onSwap;
 
   @override
@@ -180,10 +203,7 @@ class _FamilyRow extends StatelessWidget {
     ].join(' · ');
 
     return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-            builder: (_) => PersonDetailPage(personId: primary.id)),
-      ),
+      onTap: onOpen,
       child: Padding(
         padding: EdgeInsets.fromLTRB(Dim.pad + depth * 20.0, 12, Dim.pad, 12),
         child: Row(

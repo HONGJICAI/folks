@@ -6,12 +6,16 @@ import '../theme/app_theme.dart';
 
 /// 回忆 / 人情往来事件卡片。回忆 Tab 和成员详情页的时光轴共用。
 class EventCard extends StatelessWidget {
-  const EventCard({super.key, required this.event, required this.byId});
+  const EventCard(
+      {super.key, required this.event, required this.byId, this.onTap});
 
   final Event event;
 
   /// person id → Person，用于把绑定的人 id 还原成人名。
   final Map<int, Person> byId;
+
+  /// 点击回调（如打开编辑）。为空则不可点。
+  final VoidCallback? onTap;
 
   String get _names => event.boundPersonIds
       .map((id) => byId[id]?.displayName ?? '#$id')
@@ -25,7 +29,10 @@ class EventCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Card(
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
         padding: const EdgeInsets.all(Dim.pad),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,8 +53,26 @@ class EventCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text('${_date(event.occurDate)} · $_names',
-                      style: theme.textTheme.bodySmall),
+                  Text(
+                    _names.isEmpty
+                        ? _date(event.occurDate)
+                        : '${_date(event.occurDate)} · $_names',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  if (event.boundPersonIds.isEmpty) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.person_off_outlined,
+                            size: 13, color: scheme.tertiary),
+                        const SizedBox(width: 4),
+                        Text('无关联成员',
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: scheme.tertiary)),
+                      ],
+                    ),
+                  ],
                   if (event.detail != null && event.detail!.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(event.detail!,
@@ -58,6 +83,7 @@ class EventCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

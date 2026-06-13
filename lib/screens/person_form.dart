@@ -5,12 +5,19 @@ import '../data/repository.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
 
-/// 新增成员表单。[group] 决定是加家族成员还是圈子朋友。
-/// 返回 true 表示已新增（调用方据此刷新列表）。
+/// 成员表单：新增或编辑。
+/// - 新增：传 [group]（家族 / 圈子）。
+/// - 编辑：传 [existing]，分组取自该成员。
+/// 返回 true 表示已保存（调用方据此刷新）。
 class PersonFormPage extends StatefulWidget {
-  const PersonFormPage({super.key, required this.group});
+  const PersonFormPage({super.key, this.group, this.existing})
+      : assert(group != null || existing != null, '新增需 group，编辑需 existing');
 
-  final PersonGroup group;
+  final PersonGroup? group;
+  final Person? existing;
+
+  PersonGroup get effectiveGroup => existing?.group ?? group!;
+  bool get isEditing => existing != null;
 
   @override
   State<PersonFormPage> createState() => _PersonFormPageState();
@@ -37,15 +44,36 @@ class _PersonFormPageState extends State<PersonFormPage> {
   int? _spouseId;
   List<Person> _familyMembers = const [];
 
-  bool get _isFamily => widget.group == PersonGroup.family;
+  bool get _isFamily => widget.effectiveGroup == PersonGroup.family;
 
   @override
   void initState() {
     super.initState();
     _repo = context.read<FolksRepository>();
+
+    final e = widget.existing;
+    if (e != null) {
+      _name.text = e.realName;
+      _nickname.text = e.nickname ?? '';
+      _appellation.text = e.customAppellation ?? '';
+      _phone.text = e.phone ?? '';
+      _email.text = e.email ?? '';
+      _tags.text = e.tags.join(' ');
+      _memo.text = e.memo ?? '';
+      _gender = e.gender;
+      _birthDate = e.birthDate;
+      _fatherId = e.fatherId;
+      _motherId = e.motherId;
+      _spouseId = e.spouseId;
+    }
+
     if (_isFamily) {
       _repo.getPersonsByGroup(PersonGroup.family).then((list) {
-        if (mounted) setState(() => _familyMembers = list);
+        if (mounted) {
+          // 编辑时把自己从关系候选里排除（不能做自己的父母/配偶）。
+          setState(() => _familyMembers =
+              list.where((p) => p.id != widget.existing?.id).toList());
+        }
       });
     }
   }
@@ -86,26 +114,45 @@ class _PersonFormPageState extends State<PersonFormPage> {
         .where((e) => e.isNotEmpty)
         .toList();
 
-    final draft = Person(
-      id: 0, // addPerson 会赋真实 id
+    String? nn(TextEditingController c) =>
+        c.text.trim().isEmpty ? null : c.text.trim();
+
+    final oldSpouse = widget.existing?.spouseId;
+
+    // 直接用构造器（而非 copyWith），以便把清空的关系字段真正置回 null。
+    // 配偶字段先沿用旧值，改动统一交给 setSpouse/clearSpouse 双向处理（见下）。
+    final person = Person(
+      id: widget.existing?.id ?? 0, // 新增时 addPerson 赋真实 id
       realName: _name.text.trim(),
-      nickname: _nickname.text.trim().isEmpty ? null : _nickname.text.trim(),
+      nickname: nn(_nickname),
       gender: _gender,
       birthDate: _birthDate,
-      customAppellation:
-          _appellation.text.trim().isEmpty ? null : _appellation.text.trim(),
-      memo: _memo.text.trim().isEmpty ? null : _memo.text.trim(),
-      group: widget.group,
+      customAppellation: nn(_appellation),
+      memo: nn(_memo),
+      group: widget.effectiveGroup,
       fatherId: _isFamily ? _fatherId : null,
       motherId: _isFamily ? _motherId : null,
-      phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
-      email: _email.text.trim().isEmpty ? null : _email.text.trim(),
+      spouseId: _isFamily ? oldSpouse : null,
+      marriedIn: widget.existing?.marriedIn ?? false,
+      phone: nn(_phone),
+      email: nn(_email),
       tags: _isFamily ? const [] : tags,
     );
 
-    final created = await _repo.addPerson(draft);
-    if (_isFamily && _spouseId != null) {
-      await _repo.setSpouse(created.id, _spouseId!);
+    final int id;
+    if (widget.isEditing) {
+      await _repo.updatePerson(person);
+      id = person.id;
+    } else {
+      id = (await _repo.addPerson(person)).id;
+    }
+    // 配偶有变更时才动它：设置（双向 + 解除旧配偶）或清空。
+    if (_isFamily && _spouseId != oldSpouse) {
+      if (_spouseId == null) {
+        await _repo.clearSpouse(id);
+      } else {
+        await _repo.setSpouse(id, _spouseId!);
+      }
     }
     if (mounted) Navigator.of(context).pop(true);
   }
@@ -118,7 +165,9 @@ class _PersonFormPageState extends State<PersonFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isFamily ? '添加家族成员' : '添加朋友'),
+        title: Text(widget.isEditing
+            ? '编辑资料'
+            : (_isFamily ? '添加家族成员' : '添加朋友')),
         actions: [
           TextButton(onPressed: _save, child: const Text('保存')),
         ],

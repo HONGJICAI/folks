@@ -6,18 +6,46 @@ import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
 import '../widgets/empty_hint.dart';
+import 'person_detail.dart';
+import 'person_form.dart';
 
-/// 圈子 Tab：平面列表 + 标签聚类（不建人与人的边）。
-class CircleTab extends StatelessWidget {
+/// 圈子 Tab：按标签分组展示。一个人有多个标签时会出现在多个分组下（聚类，非互斥）。
+class CircleTab extends StatefulWidget {
   const CircleTab({super.key});
 
   @override
+  State<CircleTab> createState() => _CircleTabState();
+}
+
+class _CircleTabState extends State<CircleTab> {
+  late final FolksRepository _repo;
+  late Future<List<Person>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _repo = context.read<FolksRepository>();
+    _future = _repo.getPersonsByGroup(PersonGroup.circle);
+  }
+
+  void _reload() {
+    setState(() => _future = _repo.getPersonsByGroup(PersonGroup.circle));
+  }
+
+  Future<void> _addFriend() async {
+    final added = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+          builder: (_) => const PersonFormPage(group: PersonGroup.circle)),
+    );
+    if (added == true) _reload();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final repo = context.read<FolksRepository>();
     return Scaffold(
       appBar: AppBar(title: const Text('圈子')),
       body: FutureBuilder<List<Person>>(
-        future: repo.getPersonsByGroup(PersonGroup.circle),
+        future: _future,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
@@ -29,29 +57,93 @@ class CircleTab extends StatelessWidget {
               text: '还没有朋友\n点右下角添加，并打上标签归类',
             );
           }
-          return ListView(
-            padding: const EdgeInsets.all(Dim.pad),
-            children: [
-              Card(
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  children: [
-                    for (var i = 0; i < people.length; i++) ...[
-                      if (i > 0) const Divider(),
-                      _FriendRow(person: people[i]),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          );
+          return _GroupedList(people: people);
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('「添加朋友」待实现')),
-        ),
+        onPressed: _addFriend,
         child: const Icon(Icons.person_add),
+      ),
+    );
+  }
+}
+
+class _GroupedList extends StatelessWidget {
+  const _GroupedList({required this.people});
+  final List<Person> people;
+
+  @override
+  Widget build(BuildContext context) {
+    // 按标签聚类；无标签的归到「未分组」。
+    final tagToPeople = <String, List<Person>>{};
+    final untagged = <Person>[];
+    for (final p in people) {
+      if (p.tags.isEmpty) {
+        untagged.add(p);
+      } else {
+        for (final t in p.tags) {
+          tagToPeople.putIfAbsent(t, () => []).add(p);
+        }
+      }
+    }
+    final tags = tagToPeople.keys.toList()..sort();
+
+    return ListView(
+      padding: const EdgeInsets.all(Dim.pad),
+      children: [
+        for (final t in tags) ...[
+          _SectionHeader(title: '#$t', count: tagToPeople[t]!.length),
+          _PeopleCard(people: tagToPeople[t]!),
+          const SizedBox(height: Dim.pad),
+        ],
+        if (untagged.isNotEmpty) ...[
+          _SectionHeader(title: '未分组', count: untagged.length),
+          _PeopleCard(people: untagged),
+        ],
+      ],
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, required this.count});
+  final String title;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+      child: Row(
+        children: [
+          Text(title,
+              style: TextStyle(
+                  color: scheme.primary, fontWeight: FontWeight.w600)),
+          const SizedBox(width: 6),
+          Text('$count',
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+}
+
+class _PeopleCard extends StatelessWidget {
+  const _PeopleCard({required this.people});
+  final List<Person> people;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (var i = 0; i < people.length; i++) ...[
+            if (i > 0) const Divider(),
+            _FriendRow(person: people[i]),
+          ],
+        ],
       ),
     );
   }
@@ -68,13 +160,13 @@ class _FriendRow extends StatelessWidget {
     final age = person.ageAt(DateTime.now());
 
     return InkWell(
-      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('「朋友详情页」待实现')),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (_) => PersonDetailPage(personId: person.id)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(Dim.pad),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Avatar(name: person.realName),
             const SizedBox(width: Dim.gap),
@@ -85,22 +177,6 @@ class _FriendRow extends StatelessWidget {
                   Text(person.displayName, style: theme.textTheme.titleMedium),
                   if (age != null)
                     Text('$age 岁', style: theme.textTheme.bodySmall),
-                  if (person.tags.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        for (final t in person.tags)
-                          Chip(
-                            label: Text('#$t'),
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
-                      ],
-                    ),
-                  ],
                 ],
               ),
             ),

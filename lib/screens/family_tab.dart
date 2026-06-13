@@ -6,6 +6,8 @@ import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
 import '../widgets/empty_hint.dart';
+import 'person_detail.dart';
+import 'person_form.dart';
 
 /// 家族 Tab：把内嵌的 父/母/配偶 关系还原成一棵（森林）树，缩进展示。
 ///
@@ -75,7 +77,7 @@ class _FamilyTabState extends State<FamilyTab> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _todo('引导式录入（加父亲/孩子/配偶）'),
+        onPressed: _addMember,
         child: const Icon(Icons.person_add),
       ),
     );
@@ -145,10 +147,12 @@ class _FamilyTabState extends State<FamilyTab> {
     return rows;
   }
 
-  void _todo(String what) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('「$what」待实现')),
+  Future<void> _addMember() async {
+    final added = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+          builder: (_) => const PersonFormPage(group: PersonGroup.family)),
     );
+    if (added == true) _reload();
   }
 }
 
@@ -176,8 +180,9 @@ class _FamilyRow extends StatelessWidget {
     ].join(' · ');
 
     return InkWell(
-      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('「成员详情页」待实现')),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (_) => PersonDetailPage(personId: primary.id)),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(Dim.pad + depth * 20.0, 12, Dim.pad, 12),

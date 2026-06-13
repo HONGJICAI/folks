@@ -176,6 +176,18 @@ abstract class AppLocalizations {
   /// **'Swap main / partner'**
   String get swapPrimary;
 
+  /// No description provided for @viewList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get viewList;
+
+  /// No description provided for @viewTree.
+  ///
+  /// In en, this message translates to:
+  /// **'Tree'**
+  String get viewTree;
+
   /// No description provided for @circleEmpty.
   ///
   /// In en, this message translates to:

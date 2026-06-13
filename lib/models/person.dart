@@ -47,6 +47,9 @@ class Person {
   /// 血亲（marriedIn=false）为主、姻亲为副。引导式录入时「加配偶」默认置 true。
   final bool marriedIn;
 
+  /// 是否为"我"（自己）。全局应仅一人为 true，作为家族树的锚点（居中点）。
+  final bool isSelf;
+
   // --- 联系方式（可选，单值从简）---
   /// 注意：电话**不是唯一标识**，多个 person 可共用同一号码（如爷爷奶奶共用老人机），
   /// 导入通讯录时也不按号码去重。主键始终是 [id]。
@@ -70,6 +73,7 @@ class Person {
     this.motherId,
     this.spouseId,
     this.marriedIn = false,
+    this.isSelf = false,
     this.phone,
     this.email,
     this.tags = const [],
@@ -106,6 +110,7 @@ class Person {
     Object? motherId = _unset,
     Object? spouseId = _unset,
     bool? marriedIn,
+    bool? isSelf,
     String? phone,
     String? email,
     List<String>? tags,
@@ -123,6 +128,7 @@ class Person {
       motherId: identical(motherId, _unset) ? this.motherId : motherId as int?,
       spouseId: identical(spouseId, _unset) ? this.spouseId : spouseId as int?,
       marriedIn: marriedIn ?? this.marriedIn,
+      isSelf: isSelf ?? this.isSelf,
       phone: phone ?? this.phone,
       email: email ?? this.email,
       tags: tags ?? this.tags,
@@ -143,6 +149,7 @@ class Person {
         'mother_id': motherId,
         'spouse_id': spouseId,
         'married_in': marriedIn ? 1 : 0,
+        'is_self': isSelf ? 1 : 0,
         'phone': phone,
         'email': email,
         'tags': tags.join(';'),
@@ -163,6 +170,7 @@ class Person {
         motherId: m['mother_id'] as int?,
         spouseId: m['spouse_id'] as int?,
         marriedIn: (m['married_in'] as int?) == 1,
+        isSelf: (m['is_self'] as int?) == 1,
         phone: m['phone'] as String?,
         email: m['email'] as String?,
         tags: ((m['tags'] as String?) ?? '')

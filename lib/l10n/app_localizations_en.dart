@@ -49,6 +49,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get swapPrimary => 'Swap main / partner';
 
   @override
+  String get viewList => 'List';
+
+  @override
+  String get viewTree => 'Tree';
+
+  @override
   String get circleEmpty => 'No friends yet.\nTap + to add and tag them.';
 
   @override

@@ -48,6 +48,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get swapPrimary => '主副对调';
 
   @override
+  String get viewList => '列表';
+
+  @override
+  String get viewTree => '族谱';
+
+  @override
   String get circleEmpty => '还没有朋友\n点右下角添加，并打上标签归类';
 
   @override

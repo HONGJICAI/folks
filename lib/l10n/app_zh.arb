@@ -17,6 +17,8 @@
   "familyEmpty": "还没有家族成员\n点右下角从\"我\"开始添加",
   "addFamilyMember": "添加家族成员",
   "swapPrimary": "主副对调",
+  "viewList": "列表",
+  "viewTree": "族谱",
 
   "circleEmpty": "还没有朋友\n点右下角添加，并打上标签归类",
   "addFriend": "添加朋友",

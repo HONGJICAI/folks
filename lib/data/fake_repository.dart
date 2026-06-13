@@ -42,6 +42,7 @@ class FakeRepository implements FolksRepository {
       gender: Gender.male,
       birthDate: DateTime(1995, 6, 1),
       group: PersonGroup.family,
+      isSelf: true, // 锚点：家族树以"我"为水平中点
     ));
     final dad = _put(Person(
       id: _nextPersonId,

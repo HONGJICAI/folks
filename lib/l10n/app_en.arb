@@ -17,6 +17,8 @@
   "familyEmpty": "No family members yet.\nTap + to start from \"Me\".",
   "addFamilyMember": "Add family member",
   "swapPrimary": "Swap main / partner",
+  "viewList": "List",
+  "viewTree": "Tree",
 
   "circleEmpty": "No friends yet.\nTap + to add and tag them.",
   "addFriend": "Add friend",

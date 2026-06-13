@@ -1,0 +1,88 @@
+{
+  "@@locale": "zh",
+
+  "appTitle": "Folks 身边人",
+
+  "tabFamily": "家族",
+  "tabCircle": "圈子",
+  "tabMemory": "回忆",
+
+  "actionSave": "保存",
+  "actionCancel": "取消",
+  "actionDelete": "删除",
+  "actionEdit": "编辑",
+  "actionAdd": "添加",
+  "actionExport": "导出",
+
+  "familyEmpty": "还没有家族成员\n点右下角从\"我\"开始添加",
+  "addFamilyMember": "添加家族成员",
+  "swapPrimary": "主副对调",
+
+  "circleEmpty": "还没有朋友\n点右下角添加，并打上标签归类",
+  "addFriend": "添加朋友",
+  "ungrouped": "未分组",
+
+  "memoryEmpty": "还没有回忆\n记下一次随礼、一次聚会或一个里程碑",
+  "recordEntry": "记一笔",
+  "editEntry": "编辑记录",
+  "filterAll": "全部",
+  "filterUnlinked": "无关联 ({count})",
+  "monthHeader": "{year}年{month}月",
+
+  "personGone": "该成员已不存在",
+  "relationFather": "父亲",
+  "relationMother": "母亲",
+  "relationSpouse": "配偶",
+  "relationNone": "无",
+  "exchangesTitle": "人情往来",
+  "youGave": "你支出",
+  "youReceived": "你收到",
+  "timelineTitle": "往来与回忆",
+  "noRecordsWith": "还没有与 {name} 的往来记录",
+  "deleteMemberTitle": "删除成员",
+  "deleteMemberBody": "确定删除「{name}」吗？\n与 TA 的亲属/配偶关系会被解除，回忆记录里也会移除 TA。",
+
+  "editProfile": "编辑资料",
+  "fieldRealName": "真实姓名 *",
+  "validateName": "请填写姓名",
+  "fieldNickname": "小名 / 乳名",
+  "fieldAppellation": "自定义称呼（如 大表姐）",
+  "fieldPhone": "电话",
+  "fieldEmail": "邮箱",
+  "fieldBirthday": "生日",
+  "valueNotSet": "未填写",
+  "fieldTags": "标签（空格或逗号分隔）",
+  "fieldTagsHint": "大学室友 骑行搭子",
+  "fieldMemo": "备注",
+
+  "genderMale": "男",
+  "genderFemale": "女",
+  "genderUnknown": "未知",
+
+  "ageYears": "{age} 岁",
+
+  "fieldEventTitle": "事件标题 *",
+  "fieldEventTitleHint": "如 大表姐结婚随礼",
+  "validateTitle": "请填写标题",
+  "fieldOccurDate": "发生日期",
+  "dirExpense": "支出",
+  "dirIncome": "收入",
+  "fieldAmount": "金额",
+  "relatedPeople": "关联的人",
+  "relatedPeopleReq": "关联的人 *",
+  "relatedPeopleHint": "可多选；记录会出现在每个人的时光轴里",
+  "atLeastOnePerson": "请至少关联一个人",
+  "sectionPhotos": "照片",
+  "fieldJournal": "手记",
+  "noLinkedMembers": "无关联成员",
+  "eventGone": "该记录已不存在",
+  "deleteEntryTitle": "删除记录",
+  "deleteEntryBody": "确定删除「{title}」吗？",
+
+  "typeMaterial": "物质往来",
+  "typeExperience": "共同经历",
+  "typeMilestone": "重要里程碑",
+
+  "cantOpenImage": "无法打开该图片",
+  "pageIndicator": "{index} / {total}"
+}

@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../data/repository.dart';
+import '../l10n/l10n.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
@@ -82,7 +83,7 @@ class _EventFormPageState extends State<EventFormPage> {
       initialDate: _occurDate,
       firstDate: DateTime(1970),
       lastDate: DateTime.now(),
-      helpText: '事件发生日期',
+      helpText: context.l10n.fieldOccurDate,
     );
     if (picked != null) setState(() => _occurDate = picked);
   }
@@ -91,7 +92,7 @@ class _EventFormPageState extends State<EventFormPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_selected.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请至少关联一个人')),
+        SnackBar(content: Text(context.l10n.atLeastOnePerson)),
       );
       return;
     }
@@ -117,14 +118,15 @@ class _EventFormPageState extends State<EventFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.l10n;
     final dateText =
         '${_occurDate.year}-${_occurDate.month.toString().padLeft(2, '0')}-${_occurDate.day.toString().padLeft(2, '0')}';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? '编辑记录' : '记一笔'),
+        title: Text(widget.isEditing ? t.editEntry : t.recordEntry),
         actions: [
-          TextButton(onPressed: _save, child: const Text('保存')),
+          TextButton(onPressed: _save, child: Text(t.actionSave)),
         ],
       ),
       body: Form(
@@ -134,8 +136,10 @@ class _EventFormPageState extends State<EventFormPage> {
           children: [
             SegmentedButton<EventType>(
               segments: [
-                for (final t in EventType.values)
-                  ButtonSegment(value: t, label: Text('${t.emoji}${t.label}')),
+                for (final type in EventType.values)
+                  ButtonSegment(
+                      value: type,
+                      label: Text('${type.emoji}${type.label(t)}')),
               ],
               selected: {_type},
               onSelectionChanged: (s) => setState(() => _type = s.first),
@@ -143,12 +147,12 @@ class _EventFormPageState extends State<EventFormPage> {
             const SizedBox(height: Dim.gap),
             TextFormField(
               controller: _title,
-              decoration: const InputDecoration(
-                  labelText: '事件标题 *',
-                  hintText: '如 大表姐结婚随礼',
-                  border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: t.fieldEventTitle,
+                  hintText: t.fieldEventTitleHint,
+                  border: const OutlineInputBorder()),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? '请填写标题' : null,
+                  (v == null || v.trim().isEmpty) ? t.validateTitle : null,
             ),
             const SizedBox(height: Dim.gap),
             ListTile(
@@ -157,7 +161,7 @@ class _EventFormPageState extends State<EventFormPage> {
                 side: BorderSide(color: Theme.of(context).colorScheme.outline),
               ),
               leading: const Icon(Icons.event_outlined),
-              title: const Text('发生日期'),
+              title: Text(t.fieldOccurDate),
               subtitle: Text(dateText),
               trailing: const Icon(Icons.calendar_today, size: 18),
               onTap: _pickDate,
@@ -165,11 +169,11 @@ class _EventFormPageState extends State<EventFormPage> {
             if (_isMoney) ...[
               const SizedBox(height: Dim.gap),
               SegmentedButton<MoneyDirection>(
-                segments: const [
+                segments: [
                   ButtonSegment(
-                      value: MoneyDirection.expense, label: Text('支出')),
+                      value: MoneyDirection.expense, label: Text(t.dirExpense)),
                   ButtonSegment(
-                      value: MoneyDirection.income, label: Text('收入')),
+                      value: MoneyDirection.income, label: Text(t.dirIncome)),
                 ],
                 selected: {_direction},
                 onSelectionChanged: (s) =>
@@ -179,16 +183,17 @@ class _EventFormPageState extends State<EventFormPage> {
               TextFormField(
                 controller: _amount,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                    labelText: '金额（元）',
+                decoration: InputDecoration(
+                    labelText: t.fieldAmount,
                     prefixText: '¥ ',
-                    border: OutlineInputBorder()),
+                    border: const OutlineInputBorder()),
               ),
             ],
             const SizedBox(height: 20),
-            Text('关联的人 *', style: Theme.of(context).textTheme.titleMedium),
+            Text(t.relatedPeopleReq,
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
-            Text('可多选；记录会出现在每个人的时光轴里',
+            Text(t.relatedPeopleHint,
                 style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: Dim.gap),
             Wrap(
@@ -207,12 +212,13 @@ class _EventFormPageState extends State<EventFormPage> {
             const SizedBox(height: 20),
             Row(
               children: [
-                Text('照片', style: Theme.of(context).textTheme.titleMedium),
+                Text(t.sectionPhotos,
+                    style: Theme.of(context).textTheme.titleMedium),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: _addPhotos,
                   icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
-                  label: const Text('添加'),
+                  label: Text(t.actionAdd),
                 ),
               ],
             ),
@@ -249,8 +255,9 @@ class _EventFormPageState extends State<EventFormPage> {
             TextFormField(
               controller: _detail,
               maxLines: 3,
-              decoration: const InputDecoration(
-                  labelText: '手记', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: t.fieldJournal,
+                  border: const OutlineInputBorder()),
             ),
           ],
         ),

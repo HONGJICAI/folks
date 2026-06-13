@@ -5,8 +5,10 @@ import '../data/repository.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import '../l10n/l10n.dart';
 import '../widgets/empty_hint.dart';
 import '../widgets/event_card.dart';
+import '../widgets/language_toggle.dart';
 import 'event_detail.dart';
 import 'event_form.dart';
 
@@ -93,7 +95,10 @@ class _MemoryTabState extends State<MemoryTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('回忆')),
+      appBar: AppBar(
+        title: Text(context.l10n.tabMemory),
+        actions: const [LanguageToggle()],
+      ),
       body: FutureBuilder<(List<Event>, Map<int, Person>)>(
         future: _future,
         builder: (context, snap) {
@@ -102,9 +107,9 @@ class _MemoryTabState extends State<MemoryTab> {
           }
           final (events, byId) = snap.data!;
           if (events.isEmpty) {
-            return const EmptyHint(
+            return EmptyHint(
               icon: Icons.favorite_outline,
-              text: '还没有回忆\n记下一次随礼、一次聚会或一个里程碑',
+              text: context.l10n.memoryEmpty,
             );
           }
           final orphanCount =
@@ -121,13 +126,13 @@ class _MemoryTabState extends State<MemoryTab> {
                   child: Row(
                     children: [
                       ChoiceChip(
-                        label: const Text('全部'),
+                        label: Text(context.l10n.filterAll),
                         selected: !_orphanOnly,
                         onSelected: (_) => setState(() => _orphanOnly = false),
                       ),
                       const SizedBox(width: 8),
                       ChoiceChip(
-                        label: Text('无关联 ($orphanCount)'),
+                        label: Text(context.l10n.filterUnlinked(orphanCount)),
                         selected: _orphanOnly,
                         onSelected: (_) => setState(() => _orphanOnly = true),
                       ),
@@ -164,7 +169,7 @@ class _MonthHeader extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Text('$year年$month月',
+        Text(context.l10n.monthHeader(year, month),
             style: TextStyle(
                 color: scheme.primary, fontWeight: FontWeight.w600)),
         const SizedBox(width: 8),

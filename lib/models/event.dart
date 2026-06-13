@@ -3,16 +3,11 @@
 /// 一条事件可同时绑定多个人（[boundPersonIds]），会自动分发渲染到每个人的时光轴。
 library;
 
+// 文字 label 见 lib/l10n/l10n.dart 的本地化扩展；emoji 不本地化，留在模型里。
 enum EventType {
   material, // 💰 物质往来（金钱 / 人情账本）
   experience, // 🚗 共同经历（陪伴记录）
   milestone; // 🎯 重要里程碑（关注事件）
-
-  String get label => switch (this) {
-        EventType.material => '物质往来',
-        EventType.experience => '共同经历',
-        EventType.milestone => '重要里程碑',
-      };
 
   String get emoji => switch (this) {
         EventType.material => '💰',
@@ -22,15 +17,7 @@ enum EventType {
 }
 
 /// 资金流向。仅 [EventType.material] 有意义；其余类型为 null（无金钱交互）。
-enum MoneyDirection {
-  income, // 收（收到回礼 / 红包）
-  expense; // 支（随礼 / 给出）
-
-  String get label => switch (this) {
-        MoneyDirection.income => '收入',
-        MoneyDirection.expense => '支出',
-      };
-}
+enum MoneyDirection { income, expense }
 
 class Event {
   final int id;

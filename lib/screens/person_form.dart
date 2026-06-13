@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/repository.dart';
+import '../l10n/l10n.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
 
@@ -101,7 +102,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
       initialDate: _birthDate ?? DateTime(now.year - 30),
       firstDate: DateTime(1900),
       lastDate: now,
-      helpText: '选择生日',
+      helpText: context.l10n.fieldBirthday,
     );
     if (picked != null) setState(() => _birthDate = picked);
   }
@@ -159,17 +160,18 @@ class _PersonFormPageState extends State<PersonFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.l10n;
     final birthdayText = _birthDate == null
-        ? '未填写'
+        ? t.valueNotSet
         : '${_birthDate!.year}-${_birthDate!.month.toString().padLeft(2, '0')}-${_birthDate!.day.toString().padLeft(2, '0')}';
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isEditing
-            ? '编辑资料'
-            : (_isFamily ? '添加家族成员' : '添加朋友')),
+            ? t.editProfile
+            : (_isFamily ? t.addFamilyMember : t.addFriend)),
         actions: [
-          TextButton(onPressed: _save, child: const Text('保存')),
+          TextButton(onPressed: _save, child: Text(t.actionSave)),
         ],
       ),
       body: Form(
@@ -179,23 +181,27 @@ class _PersonFormPageState extends State<PersonFormPage> {
           children: [
             TextFormField(
               controller: _name,
-              decoration: const InputDecoration(
-                  labelText: '真实姓名 *', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: t.fieldRealName,
+                  border: const OutlineInputBorder()),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? '请填写姓名' : null,
+                  (v == null || v.trim().isEmpty) ? t.validateName : null,
             ),
             const SizedBox(height: Dim.gap),
             TextFormField(
               controller: _nickname,
-              decoration: const InputDecoration(
-                  labelText: '小名 / 乳名', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: t.fieldNickname,
+                  border: const OutlineInputBorder()),
             ),
             const SizedBox(height: Dim.gap),
             SegmentedButton<Gender>(
-              segments: const [
-                ButtonSegment(value: Gender.male, label: Text('男')),
-                ButtonSegment(value: Gender.female, label: Text('女')),
-                ButtonSegment(value: Gender.unknown, label: Text('未知')),
+              segments: [
+                ButtonSegment(value: Gender.male, label: Text(t.genderMale)),
+                ButtonSegment(
+                    value: Gender.female, label: Text(t.genderFemale)),
+                ButtonSegment(
+                    value: Gender.unknown, label: Text(t.genderUnknown)),
               ],
               selected: {_gender},
               onSelectionChanged: (s) => setState(() => _gender = s.first),
@@ -207,7 +213,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 side: BorderSide(color: Theme.of(context).colorScheme.outline),
               ),
               leading: const Icon(Icons.cake_outlined),
-              title: const Text('生日'),
+              title: Text(t.fieldBirthday),
               subtitle: Text(birthdayText),
               trailing: const Icon(Icons.calendar_today, size: 18),
               onTap: _pickBirthday,
@@ -215,42 +221,42 @@ class _PersonFormPageState extends State<PersonFormPage> {
             const SizedBox(height: Dim.gap),
             TextFormField(
               controller: _appellation,
-              decoration: const InputDecoration(
-                  labelText: '自定义称呼（如 大表姐）',
-                  border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: t.fieldAppellation,
+                  border: const OutlineInputBorder()),
             ),
             const SizedBox(height: Dim.gap),
             TextFormField(
               controller: _phone,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                  labelText: '电话', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: t.fieldPhone, border: const OutlineInputBorder()),
             ),
             const SizedBox(height: Dim.gap),
             TextFormField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                  labelText: '邮箱', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: t.fieldEmail, border: const OutlineInputBorder()),
             ),
             const SizedBox(height: Dim.gap),
             if (_isFamily) ...[
               _RelationPicker(
-                label: '父亲',
+                label: t.relationFather,
                 members: _familyMembers,
                 value: _fatherId,
                 onChanged: (v) => setState(() => _fatherId = v),
               ),
               const SizedBox(height: Dim.gap),
               _RelationPicker(
-                label: '母亲',
+                label: t.relationMother,
                 members: _familyMembers,
                 value: _motherId,
                 onChanged: (v) => setState(() => _motherId = v),
               ),
               const SizedBox(height: Dim.gap),
               _RelationPicker(
-                label: '配偶',
+                label: t.relationSpouse,
                 members: _familyMembers,
                 value: _spouseId,
                 onChanged: (v) => setState(() => _spouseId = v),
@@ -259,10 +265,10 @@ class _PersonFormPageState extends State<PersonFormPage> {
             ] else ...[
               TextFormField(
                 controller: _tags,
-                decoration: const InputDecoration(
-                  labelText: '标签（空格或逗号分隔）',
-                  hintText: '大学室友 骑行搭子',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: t.fieldTags,
+                  hintText: t.fieldTagsHint,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: Dim.gap),
@@ -270,8 +276,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
             TextFormField(
               controller: _memo,
               maxLines: 3,
-              decoration: const InputDecoration(
-                  labelText: '备注', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: t.fieldMemo, border: const OutlineInputBorder()),
             ),
           ],
         ),
@@ -301,7 +307,7 @@ class _RelationPicker extends StatelessWidget {
       decoration:
           InputDecoration(labelText: label, border: const OutlineInputBorder()),
       items: [
-        const DropdownMenuItem<int?>(value: null, child: Text('无')),
+        DropdownMenuItem<int?>(value: null, child: Text(context.l10n.relationNone)),
         for (final m in members)
           DropdownMenuItem<int?>(value: m.id, child: Text(m.displayName)),
       ],

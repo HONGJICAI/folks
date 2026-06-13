@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../data/repository.dart';
 import '../models/person.dart';
+import '../l10n/l10n.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
 import '../widgets/empty_hint.dart';
+import '../widgets/language_toggle.dart';
 import 'person_detail.dart';
 import 'person_form.dart';
 
@@ -61,7 +63,10 @@ class _CircleTabState extends State<CircleTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('圈子')),
+      appBar: AppBar(
+        title: Text(context.l10n.tabCircle),
+        actions: const [LanguageToggle()],
+      ),
       body: FutureBuilder<List<Person>>(
         future: _future,
         builder: (context, snap) {
@@ -70,9 +75,9 @@ class _CircleTabState extends State<CircleTab> {
           }
           final people = snap.data ?? const <Person>[];
           if (people.isEmpty) {
-            return const EmptyHint(
+            return EmptyHint(
               icon: Icons.groups_outlined,
-              text: '还没有朋友\n点右下角添加，并打上标签归类',
+              text: context.l10n.circleEmpty,
             );
           }
           return _GroupedList(people: people, onOpen: _openPerson);
@@ -117,7 +122,7 @@ class _GroupedList extends StatelessWidget {
           const SizedBox(height: Dim.pad),
         ],
         if (untagged.isNotEmpty) ...[
-          _SectionHeader(title: '未分组', count: untagged.length),
+          _SectionHeader(title: context.l10n.ungrouped, count: untagged.length),
           _PeopleCard(people: untagged, onOpen: onOpen),
         ],
       ],
@@ -195,7 +200,8 @@ class _FriendRow extends StatelessWidget {
                 children: [
                   Text(person.displayName, style: theme.textTheme.titleMedium),
                   if (age != null)
-                    Text('$age 岁', style: theme.textTheme.bodySmall),
+                    Text(context.l10n.ageYears(age),
+                        style: theme.textTheme.bodySmall),
                 ],
               ),
             ),

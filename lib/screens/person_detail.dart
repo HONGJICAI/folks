@@ -6,6 +6,7 @@ import '../models/balance.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import '../l10n/l10n.dart';
 import '../widgets/avatar.dart';
 import '../widgets/event_card.dart';
 import 'event_detail.dart';
@@ -71,15 +72,15 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除成员'),
-        content: Text('确定删除「${p.displayName}」吗？\n与 TA 的亲属/配偶关系会被解除，回忆记录里也会移除 TA。'),
+        title: Text(context.l10n.deleteMemberTitle),
+        content: Text(context.l10n.deleteMemberBody(p.displayName)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('取消')),
+              child: Text(context.l10n.actionCancel)),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('删除')),
+              child: Text(context.l10n.actionDelete)),
         ],
       ),
     );
@@ -109,12 +110,12 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            tooltip: '编辑',
+            tooltip: context.l10n.actionEdit,
             onPressed: _editPerson,
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: '删除',
+            tooltip: context.l10n.actionDelete,
             onPressed: _deletePerson,
           ),
         ],
@@ -129,7 +130,7 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
           final person = data.person;
           _loaded = person;
           if (person == null) {
-            return const Center(child: Text('该成员已不存在'));
+            return Center(child: Text(context.l10n.personGone));
           }
           return ListView(
             padding: const EdgeInsets.all(Dim.pad),
@@ -144,14 +145,14 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                 _BalancePanel(balance: data.balance),
               ],
               const SizedBox(height: 24),
-              Text('往来与回忆',
+              Text(context.l10n.timelineTitle,
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: Dim.gap),
               if (data.events.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Center(
-                    child: Text('还没有与 ${person.realName} 的往来记录',
+                    child: Text(context.l10n.noRecordsWith(person.realName),
                         style: Theme.of(context).textTheme.bodySmall),
                   ),
                 )
@@ -189,8 +190,8 @@ class _Header extends StatelessWidget {
     final age = person.ageAt(DateTime.now());
     final meta = [
       if (person.customAppellation != null) person.customAppellation!,
-      person.gender.label,
-      if (age != null) '$age 岁',
+      person.gender.label(context.l10n),
+      if (age != null) context.l10n.ageYears(age),
     ].join(' · ');
 
     return Row(
@@ -239,6 +240,7 @@ class _Relations extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.l10n;
     final rows = <Widget>[];
     void add(String label, int? id) {
       final p = id == null ? null : byId[id];
@@ -246,16 +248,16 @@ class _Relations extends StatelessWidget {
         rows.add(ListTile(
           dense: true,
           leading: const Icon(Icons.link, size: 18),
-          title: Text('$label：${p.displayName}'),
+          title: Text('$label: ${p.displayName}'),
           trailing: const Icon(Icons.chevron_right, size: 18),
           onTap: () => onTap(p.id),
         ));
       }
     }
 
-    add('父亲', person.fatherId);
-    add('母亲', person.motherId);
-    add('配偶', person.spouseId);
+    add(t.relationFather, person.fatherId);
+    add(t.relationMother, person.motherId);
+    add(t.relationSpouse, person.spouseId);
     if (rows.isEmpty) return const SizedBox.shrink();
 
     return Card(
@@ -311,13 +313,15 @@ class _BalancePanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('人情往来', style: theme.textTheme.bodySmall),
+            Text(context.l10n.exchangesTitle, style: theme.textTheme.bodySmall),
             const SizedBox(height: Dim.gap),
             Row(
               children: [
-                _Stat(label: '你支出', value: balance.totalExpense),
+                _Stat(label: context.l10n.youGave, value: balance.totalExpense),
                 const SizedBox(width: 32),
-                _Stat(label: '你收到', value: balance.totalIncome),
+                _Stat(
+                    label: context.l10n.youReceived,
+                    value: balance.totalIncome),
               ],
             ),
           ],
@@ -340,7 +344,7 @@ class _Stat extends StatelessWidget {
       children: [
         Text(label, style: theme.textTheme.bodySmall),
         const SizedBox(height: 2),
-        Text('${value.toStringAsFixed(0)} 元',
+        Text('¥${value.toStringAsFixed(0)}',
             style: theme.textTheme.titleMedium),
       ],
     );

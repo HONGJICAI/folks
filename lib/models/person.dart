@@ -9,26 +9,12 @@
 /// 而不是单独建一张关系表 —— 树构建和「加父亲/加孩子自动反推」都更简单。
 library;
 
-enum Gender {
-  male,
-  female,
-  unknown;
-
-  String get label => switch (this) {
-        Gender.male => '男',
-        Gender.female => '女',
-        Gender.unknown => '未知',
-      };
-}
+// 显示用文案见 lib/l10n/l10n.dart 的本地化扩展（保持模型不依赖 Flutter / i18n）。
+enum Gender { male, female, unknown }
 
 enum PersonGroup {
   family, // 家族（树状）
-  circle; // 圈子（平面 + 标签）
-
-  String get label => switch (this) {
-        PersonGroup.family => '家族',
-        PersonGroup.circle => '圈子',
-      };
+  circle, // 圈子（平面 + 标签）
 }
 
 class Person {

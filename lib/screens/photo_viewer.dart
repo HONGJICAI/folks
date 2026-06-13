@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/l10n.dart';
 import '../widgets/local_image.dart';
 
 /// 全屏照片查看器：双指/双击缩放、左右滑动切换、导出（外部打开/另存）。
@@ -41,7 +42,7 @@ class _PhotoViewerPageState extends State<PhotoViewerPage> {
         await launchUrl(uri, webOnlyWindowName: '_blank');
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法打开该图片')),
+        SnackBar(content: Text(context.l10n.cantOpenImage)),
       );
     }
   }
@@ -55,12 +56,13 @@ class _PhotoViewerPageState extends State<PhotoViewerPage> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Text('${_index + 1} / ${widget.paths.length}',
+        title: Text(
+            context.l10n.pageIndicator(_index + 1, widget.paths.length),
             style: const TextStyle(color: Colors.white, fontSize: 14)),
         actions: [
           IconButton(
             icon: const Icon(Icons.ios_share),
-            tooltip: '导出',
+            tooltip: context.l10n.actionExport,
             onPressed: _export,
           ),
         ],

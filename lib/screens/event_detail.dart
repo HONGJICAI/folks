@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/repository.dart';
+import '../l10n/l10n.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
@@ -60,15 +61,15 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除记录'),
-        content: Text('确定删除「${e.title}」吗？'),
+        title: Text(context.l10n.deleteEntryTitle),
+        content: Text(context.l10n.deleteEntryBody(e.title)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('取消')),
+              child: Text(context.l10n.actionCancel)),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('删除')),
+              child: Text(context.l10n.actionDelete)),
         ],
       ),
     );
@@ -90,11 +91,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
         actions: [
           IconButton(
               icon: const Icon(Icons.edit_outlined),
-              tooltip: '编辑',
+              tooltip: context.l10n.actionEdit,
               onPressed: _edit),
           IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: '删除',
+              tooltip: context.l10n.actionDelete,
               onPressed: _delete),
         ],
       ),
@@ -107,7 +108,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           final (event, byId) = snap.data!;
           _loaded = event;
           if (event == null) {
-            return const Center(child: Text('该记录已不存在'));
+            return Center(child: Text(context.l10n.eventGone));
           }
           return ListView(
             padding: const EdgeInsets.all(Dim.pad),
@@ -123,7 +124,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ],
               ),
               const SizedBox(height: 8),
-              Text('${event.type.label} · ${_date(event.occurDate)}',
+              Text('${event.type.label(context.l10n)} · ${_date(event.occurDate)}',
                   style: theme.textTheme.bodySmall),
               if (event.isMoney) ...[
                 const SizedBox(height: Dim.gap),
@@ -131,7 +132,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               ],
               const SizedBox(height: 20),
               // 关联的人
-              Text('关联的人', style: theme.textTheme.titleMedium),
+              Text(context.l10n.relatedPeople, style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               if (event.boundPersonIds.isEmpty)
                 Row(
@@ -139,7 +140,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     Icon(Icons.person_off_outlined,
                         size: 16, color: scheme.tertiary),
                     const SizedBox(width: 4),
-                    Text('无关联成员',
+                    Text(context.l10n.noLinkedMembers,
                         style: theme.textTheme.bodySmall
                             ?.copyWith(color: scheme.tertiary)),
                   ],
@@ -164,7 +165,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ),
               if (event.photoPaths.isNotEmpty) ...[
                 const SizedBox(height: 20),
-                Text('照片', style: theme.textTheme.titleMedium),
+                Text(context.l10n.sectionPhotos,
+                    style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -187,7 +189,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
               ],
               if (event.detail != null && event.detail!.isNotEmpty) ...[
                 const SizedBox(height: 20),
-                Text('手记', style: theme.textTheme.titleMedium),
+                Text(context.l10n.fieldJournal,
+                    style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text(event.detail!, style: theme.textTheme.bodyMedium),
               ],
@@ -208,7 +211,7 @@ class _MoneyLine extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final isExpense = event.direction == MoneyDirection.expense;
     final color = isExpense ? scheme.error : Colors.green.shade600;
-    final dirLabel = event.direction?.label ?? '';
+    final dirLabel = event.direction?.label(context.l10n) ?? '';
     return Row(
       children: [
         Text('$dirLabel  ', style: TextStyle(color: color)),

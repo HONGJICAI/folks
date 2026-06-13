@@ -4,8 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:folks/main.dart';
 
+/// 把测试固定到中文 locale，断言才稳定（否则默认英文）。
+void _useChinese(WidgetTester tester) {
+  tester.platformDispatcher.localesTestValue = const [Locale('zh')];
+  addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+}
+
 void main() {
   testWidgets('App boots with three tabs', (WidgetTester tester) async {
+    _useChinese(tester);
     await tester.pumpWidget(const FolksApp());
     await tester.pumpAndSettle();
 
@@ -15,6 +22,7 @@ void main() {
   });
 
   testWidgets('删除家族成员后，家族树里不再显示他', (WidgetTester tester) async {
+    _useChinese(tester);
     await tester.pumpWidget(const FolksApp());
     await tester.pumpAndSettle();
 

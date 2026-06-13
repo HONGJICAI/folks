@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../data/repository.dart';
 import '../models/person.dart';
+import '../l10n/l10n.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
 import '../widgets/empty_hint.dart';
+import '../widgets/language_toggle.dart';
 import 'person_detail.dart';
 import 'person_form.dart';
 
@@ -53,7 +55,10 @@ class _FamilyTabState extends State<FamilyTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('家族')),
+      appBar: AppBar(
+        title: Text(context.l10n.tabFamily),
+        actions: const [LanguageToggle()],
+      ),
       body: FutureBuilder<List<Person>>(
         future: _future,
         builder: (context, snap) {
@@ -62,9 +67,9 @@ class _FamilyTabState extends State<FamilyTab> {
           }
           final people = snap.data ?? const <Person>[];
           if (people.isEmpty) {
-            return const EmptyHint(
+            return EmptyHint(
               icon: Icons.account_tree_outlined,
-              text: '还没有家族成员\n点右下角从"我"开始添加',
+              text: context.l10n.familyEmpty,
             );
           }
           final rows = _buildForest(people);
@@ -199,7 +204,7 @@ class _FamilyRow extends StatelessWidget {
     final age = primary.ageAt(DateTime.now());
     final subtitle = [
       if (primary.customAppellation != null) primary.customAppellation!,
-      if (age != null) '$age 岁',
+      if (age != null) context.l10n.ageYears(age),
     ].join(' · ');
 
     return InkWell(
@@ -243,7 +248,7 @@ class _FamilyRow extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.swap_horiz, size: 18),
                 color: scheme.outline,
-                tooltip: '主副对调',
+                tooltip: context.l10n.swapPrimary,
                 onPressed: onSwap,
               ),
             Icon(Icons.chevron_right, color: scheme.outline),

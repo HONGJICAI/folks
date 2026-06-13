@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
@@ -68,7 +69,7 @@ class EventCard extends StatelessWidget {
                         Icon(Icons.person_off_outlined,
                             size: 13, color: scheme.tertiary),
                         const SizedBox(width: 4),
-                        Text('无关联成员',
+                        Text(context.l10n.noLinkedMembers,
                             style: theme.textTheme.bodySmall
                                 ?.copyWith(color: scheme.tertiary)),
                       ],

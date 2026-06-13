@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>亲戚朋友关系与往来管理 App (MVP) 产品需求文档</title>
+<style>
+    @page {
+        size: A4;
+        margin: 20mm 15mm;
+        background-color: #ffffff;
+        @bottom-right {
+            content: counter(page) " / " counter(pages);
+            font-family: Arial, sans-serif;
+            font-size: 9pt;
+            color: #888888;
+        }
+        @bottom-left {
+            content: "《亲戚朋友关系与往来管理 App》PRD V1.0";
+            font-family: Arial, sans-serif;
+            font-size: 9pt;
+            color: #888888;
+        }
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft YaHei", sans-serif;
+        font-size: 10.5pt;
+        line-height: 1.35;
+        color: #333333;
+    }
+    
+    /* 封面样式 */
+    .cover {
+        page-break-after: always;
+        height: 100%;
+        display: block;
+        padding-top: 50mm;
+    }
+    .cover-title {
+        font-size: 26pt;
+        font-weight: bold;
+        color: #1a365d;
+        margin-bottom: 5px;
+        line-height: 1.2;
+    }
+    .cover-subtitle {
+        font-size: 14pt;
+        color: #4a5568;
+        margin-bottom: 40mm;
+    }
+    .cover-meta {
+        font-size: 11pt;
+        color: #718096;
+        line-height: 1.6;
+    }
+    .cover-meta strong {
+        color: #2d3748;
+    }
+    
+    /* 正文标题样式 */
+    h1 {
+        font-size: 18pt;
+        color: #1a365d;
+        border-bottom: 2px solid #2b6cb0;
+        padding-bottom: 6px;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        page-break-after: avoid;
+    }
+    
+    h2 {
+        font-size: 13.5pt;
+        color: #2b6cb0;
+        border-left: 4px solid #2b6cb0;
+        padding-left: 8px;
+        margin-top: 22px;
+        margin-bottom: 12px;
+        page-break-after: avoid;
+    }
+    
+    h3 {
+        font-size: 11pt;
+        color: #2d3748;
+        margin-top: 15px;
+        margin-bottom: 8px;
+        page-break-after: avoid;
+    }
+    
+    p {
+        margin-top: 0;
+        margin-bottom: 10px;
+        text-align: justify;
+    }
+    
+    /* 列表样式 */
+    ul, ol {
+        margin-top: 0;
+        margin-bottom: 12px;
+        padding-left: 20px;
+    }
+    li {
+        margin-bottom: 4px;
+    }
+    
+    /* 表格样式 */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        font-size: 9.5pt;
+    }
+    th {
+        background-color: #f7fafc;
+        color: #2d3748;
+        font-weight: bold;
+        border: 1px solid #e2e8f0;
+        padding: 8px 10px;
+        text-align: left;
+    }
+    td {
+        border: 1px solid #e2e8f0;
+        padding: 8px 10px;
+        text-align: left;
+    }
+    tr:nth-child(even) {
+        background-color: #fcfdfd;
+    }
+    
+    /* 提示框/高亮卡片 */
+    .callout {
+        background-color: #ebf8ff;
+        border-left: 4px solid #3182ce;
+        color: #2b6cb0;
+        padding: 12px;
+        margin: 15px 0;
+        font-size: 10pt;
+    }
+    .callout-title {
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+    
+    .code-block {
+        background-color: #f7fafc;
+        border: 1px solid #e2e8f0;
+        padding: 10px;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 9pt;
+        margin: 10px 0;
+        white-space: pre-wrap;
+    }
+</style>
+</head>
+<body>
+
+<div class="cover">
+    <div class="cover-title">亲戚朋友关系与往来管理 App</div>
+    <div class="cover-subtitle">个人私密社交、年级自动换算与人情时光机 (MVP) 产品需求文档</div>
+    <div class="cover-meta">
+        <strong>文档版本：</strong> V1.0 (MVP 阶段)<br>
+        <strong>适用端：</strong> 移动端 (iOS / Android 双端通用)<br>
+        <strong>技术选型：</strong> Flutter + Local SQLite<br>
+        <strong>开发者地区：</strong> 中国香港 (香港个人纳税/AdMob结算标准)<br>
+        <strong>发布日期：</strong> 2026年5月31日
+    </div>
+</div>
+
+<h1>1. 产品概述</h1>
+<h2>1.1 背景与痛点</h2>
+<p>在当代社会中，年轻人面临着日渐复杂的亲戚网与社交圈。由于平时聚少离多，用户在节假日面对庞大家族时，普遍存在以下痛点：</p>
+<ul>
+    <li><strong>关系健忘：</strong> 无法准确叫出远房亲戚、堂表兄弟姐妹及其下一代子女的名字或小名。</li>
+    <li><strong>关键信息模糊：</strong> 难以记住小辈的精准年龄以及“当前正就读几年级”，导致长辈在交流时缺乏共同话题。</li>
+    <li><strong>人情账目混乱：</strong> 无法高效追踪亲戚结婚、生娃、过年等随礼红包的往来详情，或在回礼时缺乏差额比对参考。</li>
+    <li><strong>情感记忆断层：</strong> 缺乏一个私密的个人空间，用来记录与特定重要亲友共同旅游、聚餐等升温经历。</li>
+</ul>
+
+<h2>1.2 核心产品定位</h2>
+<p>本产品是一款<strong>主打“纯本地、极致隐私、即用即走”的个人社交辅助管理工具</strong>。它既非宏大的宗族家谱，也非商务用的 CRM 系统，而是专为年轻人打造的“有温度的数字人脉手账”。</p>
+
+<div class="callout">
+    <div class="callout-title">💡 商业化与变现策略 (香港个人开发者)</div>
+    本应用不采取高门槛的强制订阅或买断制，而采用<strong>“免费下载 + 激励广告保底 + 自愿打赏去广告”</strong>的混合模式。鉴于开发者为香港居民，整体广告变现架构将无缝依托国际标准进行合规搭建。
+</div>
+
+<h1>2. 核心系统架构与商业变现</h1>
+
+<h2>2.1 纯本地化技术边界与隐私设计</h2>
+<ul>
+    <li><strong>数据存储：</strong> 所有业务数据（如成员姓名、出生日期、回忆文字、流水账目等）全部持久化存储于用户手机本地的 SQLite 数据库或加密 MMKV 键值对中。</li>
+    <li><strong>媒体资源：</strong> 动态回忆中添加的照片，应用内仅存储其在系统相册中的<strong>本地 URI 路径引用</strong>，不进行任何云端图片上传，从而实现 0 服务器运营成本与 100% 数据隐私安全。</li>
+    <li><strong>网络依赖：</strong> 应用除加载三方广告组件、版本更新提示或获取汇率外，核心业务逻辑在完全断网（飞行模式）状态下亦可流畅使用。</li>
+</ul>
+
+<h2>2.2 香港居民开发者广告变现方案 (Google AdMob)</h2>
+<p>针对香港独立开发者身份，变现策略进行如下专项设计：</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 25%;">平台与组件</th>
+            <th style="width: 35%;">业务接入规范</th>
+            <th style="width: 40%;">香港个人收款结算逻辑</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Google AdMob</strong><br>(核心变现平台)</td>
+            <td>集成 Flutter 官方维护的 <code>google_mobile_ads</code> 插件。</td>
+            <td rowspan="2">
+                1. <strong>注册地规范：</strong> 必须严格选定“中国香港”。<br>
+                2. <strong>银行绑定：</strong> 绑定香港本地商业银行（如汇丰、中银香港等）的港币储蓄账户。<br>
+                3. <strong>税务声明：</strong> 在 AdMob 后台在线勾选并提交 W-8BEN 电子表格，声明非美国纳税人，获取 0% 预扣税。<br>
+                4. <strong>数据安全：</strong> 用户数据纯本地，SDK 仅向 Google 发送设备广告标识符及 IP（用于广告分发），不侵犯数据隐私。
+            </td>
+        </tr>
+        <tr>
+            <td><strong>穿山甲海外版<br>(Pangle)</strong><br>(内地流量补充)</td>
+            <td>通过 AdMob Mediation (聚合) 接入，用于自动填充来自中国内地的广告源。</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>2.2.1 广告位布局设计 (避免低级差评)</h3>
+<ol>
+    <li><strong>开屏广告 (Splash Ad)：</strong> 每次冷启动或后台挂起超过 15 分钟切回时展示 3~5 秒，允许用户一键跳过。</li>
+    <li><strong>原生信息流广告 (Native Ad)：</strong> 伪装成列表样式，平滑嵌入【往来回忆】Tab 页面的流水账列表第 4、5 行记录之间。</li>
+    <li><strong>激励视频广告 (Rewarded Video Ad)：</strong> 用于高级衍生技能解锁（例如：一键导出 HTML 精美家谱报告）。用户点击后需完整观看 15~30 秒视频，即可免费解锁该功能 24 小时使用权。</li>
+</ol>
+
+<h1>3. 核心功能模块详细需求 (三个核心 Tab)</h1>
+
+<h2>3.1 Tab 1：【家族】(层级树状与自动换算视图)</h2>
+<p>用于组织和查看具有血缘级联、辈分关系的家族成员。其核心产品逻辑在于对成员层级的直观可视化和对儿童成长状态的智能感知。</p>
+
+<h3>3.1.1 核心字段与底层逻辑</h3>
+<ul>
+    <li>每个成员节点需录入：<code>真实姓名</code>、<code>小名/乳名</code>、<code>性别</code>、<code>出生年月日</code>、<code>父亲ID</code>、<code>母亲ID</code>、<code>配偶ID</code>、<code>自定义称呼</code>。</li>
+</ul>
+
+<h3>3.1.3 杀手锏功能 2：称呼算法反向解析</h3>
+<p>传统称呼计算器为单向输入逻辑。本系统要求在【家族树】建立完毕后，当用户点开某个具体子节点（例如大表姐的女儿）的详情页时，系统自动根据级联关系，在下方小字部分进行反向渲染：<br>
+<code>"你应该称呼她为：表外甥女"</code> / <code>"她应该称呼你为：表舅/表姨"</code>。</p>
+
+<h2>3.2 Tab 2：【圈子】(平面网状朋友视图)</h2>
+<p>朋友、同事、客户等关系不属于血缘级联树，采用<strong>“扁平列表 + 聚类标签群”</strong>的方式组织。</p>
+<ul>
+    <li><strong>多标签聚合：</strong> 用户可为某位朋友打上多个复合标签，例如 <code>#大学室友</code>、<code>#前公司同事</code>、<code>#骑行搭子</code>。</li>
+    <li><strong>家属随行字段：</strong> 朋友卡片中提供扁平化的非树状随行备注，用于平移记录朋友家属，结构如：<code>配偶: 王小五</code>、<code>一胎: 豆豆 (2022年10月生)</code>。此功能可让用户迅速检索朋友的孩子，确保礼貌社交。</li>
+</ul>
+
+<h2>3.3 Tab 3：【回忆】(双向交互人情时光机)</h2>
+<p>此模块将原本冷冰冰的记账本升华为一个有温度的动态时间轴，全面支持金钱和非金钱社交事件的混合记录。</p>
+
+<h3>3.3.1 事件类型与定义</h3>
+<ol>
+    <li><strong>💰 物质往来 (金钱/人情账本)：</strong> 记录结婚随礼、生娃红包、新年压岁钱等。支持输入金额、选择收/支方向。</li>
+    <li><strong>🚗 共同经历 (陪伴记录)：</strong> 记录诸如“和二表姐一家自驾去迪士尼”、“死党聚餐”等。</li>
+    <li><strong>🎯 重要里程碑 (关注事件)：</strong> 记录如“外婆80大寿”、“大表姐儿子今日上小学”。</li>
+</ol>
+
+<h3>3.3.2 强耦合交互设计 (核心爽点)</h3>
+<ul>
+    <li><strong>多联络人绑定：</strong> 任何一条【回忆】或【账目】记录，允许用户<strong>同时勾选多个人名 ID</strong>。例如：新建一条“两家自驾游”经历，勾选“大表姐”和“表侄子狗蛋”，此记录会同时、自动地分发渲染至这两个人的个人详情时光轴内。</li>
+    <li><strong>差额往来自动清算：</strong> 在某人的详情页中，系统会自动加总与该成员的所有金钱往来流水，并在顶部给出一个全局爽点统计面板：<code>"历史你支出 5,000 元，收到回礼 3,000 元。当前净人情往来：逆差 2,000 元"</code>。</li>
+</ul>
+
+<h1>4. 纯本地数据导出、导入与备份方案</h1>
+
+<p>为向用户深度兑现“数据完全自主、无广告绑定危险”的承诺，系统不建立任何云数据库，全面提供全量备份与分类明细导出功能。</p>
+
+<h2>4.1 开发者底层备份：一键本地 WebDAV / JSON 打包</h2>
+<p>应用设置中提供“全量备份”按钮，一键将底层的 SQLite 核心关联表和配置信息，统一编码成一个名为 <code>rel_backup_xxxx.json</code> 的高密度数据文件。用户可将其自由保存至个人网盘或通过本地隔空投送（AirDrop）进行多设备间的数据迁移与导入恢复。</p>
+
+<h2>4.2 普通用户无门槛阅读：分类明细 CSV / Excel 导出规范</h2>
+<p>系统必须支持将三个 Tab 转换成标准的平铺式 CSV 文件，确保其能用 Excel 或 Numbers 完美打开查看。表格列定义必须严格依照下表设计执行：</p>
+
+<h3>表 1：<code>家族树成员档案.csv</code> (Tab 1 导出规范)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>列名 (Column)</th>
+            <th>数据类型</th>
+            <th>列含义说明与生成逻辑</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>member_id</td>
+            <td>INT (Primary Key)</td>
+            <td>本地成员唯一自增标识符，用于保持级联外键关系。</td>
+        </tr>
+        <tr>
+            <td>full_name</td>
+            <td>VARCHAR</td>
+            <td>亲戚的官方/真实姓名（如：张美丽的女儿名称）。</td>
+        </tr>
+        <tr>
+            <td>nickname</td>
+            <td>VARCHAR</td>
+            <td>家族常用的小名/乳名（如：狗蛋）。</td>
+        </tr>
+        <tr>
+            <td>relation_label</td>
+            <td>VARCHAR</td>
+            <td>用户对该亲戚的自定口头称呼（如：大表姐、表外甥）。</td>
+        </tr>
+        <tr>
+            <td>father_id / mother_id</td>
+            <td>INT (Nullable)</td>
+            <td><strong>核心：</strong> 用于在表格或未来迁移中完美还原树状血缘关系。</td>
+        </tr>
+        <tr>
+            <td>spouse_id</td>
+            <td>INT (Nullable)</td>
+            <td>关联配偶的 ID，用于标记姻亲关系（如表姐夫）。</td>
+        </tr>
+        <tr>
+            <td>birth_date</td>
+            <td>DATE (YYYY-MM-DD)</td>
+            <td>出生年月日，以便电脑端或其他系统未来进行周岁二次换算。</td>
+        </tr>
+        <tr>
+            <td>memo_markdown</td>
+            <td>TEXT</td>
+            <td>Markdown 格式的文字手记、聊天避讳或个人喜好。</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>表 2：<code>朋友与社交圈档案.csv</code> (Tab 2 导出规范)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>列名 (Column)</th>
+            <th>数据类型</th>
+            <th>列含义说明与生成逻辑</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>friend_id</td>
+            <td>INT (Primary Key)</td>
+            <td>朋友节点的唯一独立标识。</td>
+        </tr>
+        <tr>
+            <td>friend_name</td>
+            <td>VARCHAR</td>
+            <td>朋友的姓名或日常备注名。</td>
+        </tr>
+        <tr>
+            <td>tags_string</td>
+            <td>VARCHAR</td>
+            <td><strong>多标签聚合：</strong> 多个标签之间通过半角分号（;）拼装，如 <code>"大学室友;驴友;数码圈"</code>。</td>
+        </tr>
+        <tr>
+            <td>anniversary_date</td>
+            <td>DATE (YYYY-MM-DD)</td>
+            <td>关键纪念日（如生日、相识纪念日）。</td>
+        </tr>
+        <tr>
+            <td>family_members_text</td>
+            <td>TEXT</td>
+            <td><strong>扁平家属信息串：</strong> 拼装输出其家属快照，如 <code>"配偶:王五;儿子:大宝(2021-10)"</code>。</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>表 3：<code>社交动态与回忆档案.csv</code> (Tab 3 导出规范)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>列名 (Column)</th>
+            <th>数据类型</th>
+            <th>列含义说明与生成逻辑</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>event_id</td>
+            <td>INT (Primary Key)</td>
+            <td>单条活动流水或人情往来的唯一标识。</td>
+        </tr>
+        <tr>
+            <td>bound_member_names</td>
+            <td>VARCHAR</td>
+            <td><strong>核心转换：</strong> 导出时代码自动查询并将关联的多个人名ID转换成明文文本，用分号隔开，如 <code>"大表姐;表侄狗蛋"</code>，方便 Excel 阅读。</td>
+        </tr>
+        <tr>
+            <td>event_type</td>
+            <td>ENUM</td>
+            <td>固定输出：<code>金钱往来</code> / <code>共同活动</code> / <code>关键里程碑</code>。</td>
+        </tr>
+        <tr>
+            <td>event_title</td>
+            <td>VARCHAR</td>
+            <td>事件摘要，例如 <code>"大表姐结婚随礼"</code> 或 <code>"大屿山自驾环岛"</code>。</td>
+        </tr>
+        <tr>
+            <td>amount_flow</td>
+            <td>VARCHAR</td>
+            <td>资金流向，固定输出：<code>收入</code> / <code>支出</code> / <code>无金钱交互</code>。</td>
+        </tr>
+        <tr>
+            <td>amount_value</td>
+            <td>DECIMAL (Nullable)</td>
+            <td>金钱往来的精准数额，活动类流水则显示为 0 或置空。</td>
+        </tr>
+        <tr>
+            <td>detail_notes</td>
+            <td>TEXT</td>
+            <td>该笔回忆或活动的深度手记，例如 <code>"这次聚餐表姐夫请吃了大餐，小辈很喜欢抓蜻蜓"</code>。</td>
+        </tr>
+        <tr>
+            <td>photo_paths_local</td>
+            <td>TEXT</td>
+            <td>本地照片的存储 URI 路径快照（如 <code>"/storage/emulated/0/Android/data..."</code>）。</td>
+        </tr>
+        <tr>
+            <td>occur_date</td>
+            <td>DATE (YYYY-MM-DD)</td>
+            <td>该项事件发生的具体日期。</td>
+        </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

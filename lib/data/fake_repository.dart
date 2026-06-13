@@ -1,0 +1,334 @@
+/// 内存版假数据实现 —— 给 UI 先行开发用。
+///
+/// 数据写死在内存里，App 重启即重置；不依赖 SQLite / 任何 IO。
+/// 替换为真实数据库时，只需另写一个 implements [FolksRepository] 的类。
+library;
+
+import '../models/balance.dart';
+import '../models/event.dart';
+import '../models/person.dart';
+import 'repository.dart';
+
+class FakeRepository implements FolksRepository {
+  FakeRepository() {
+    _seed();
+  }
+
+  final Map<int, Person> _persons = {};
+  final Map<int, Event> _events = {};
+  int _personSeq = 0;
+  int _eventSeq = 0;
+
+  int get _nextPersonId => ++_personSeq;
+  int get _nextEventId => ++_eventSeq;
+
+  // ---- 样例数据：一个有树结构的家族 + 几个圈子朋友 + 回忆/账目 ----
+  void _seed() {
+    // 家族：我 - 父母 - 大表姐(姑姑的女儿) - 表侄
+    final me = _put(Person(
+      id: _nextPersonId,
+      realName: '我',
+      gender: Gender.male,
+      birthDate: DateTime(1995, 6, 1),
+      group: PersonGroup.family,
+    ));
+    final dad = _put(Person(
+      id: _nextPersonId,
+      realName: '张建国',
+      nickname: '老爸',
+      gender: Gender.male,
+      birthDate: DateTime(1968, 3, 12),
+      customAppellation: '爸爸',
+      group: PersonGroup.family,
+      phone: '13800138000', // 与妈妈共用一台老人机：同号可重复，不去重
+    ));
+    final mom = _put(Person(
+      id: _nextPersonId,
+      realName: '李秀兰',
+      gender: Gender.female,
+      birthDate: DateTime(1970, 9, 20),
+      customAppellation: '妈妈',
+      group: PersonGroup.family,
+      phone: '13800138000', // 同上：和爸爸同一个号
+    ));
+    _persons[me.id] = me.copyWith(fatherId: dad.id, motherId: mom.id);
+    _link(dad.id, mom.id); // 父母互为配偶
+
+    final cousin = _put(Person(
+      id: _nextPersonId,
+      realName: '王丽',
+      gender: Gender.female,
+      birthDate: DateTime(1992, 11, 5),
+      customAppellation: '大表姐',
+      group: PersonGroup.family,
+    ));
+    final cousinHusband = _put(Person(
+      id: _nextPersonId,
+      realName: '赵强',
+      gender: Gender.male,
+      birthDate: DateTime(1990, 1, 8),
+      customAppellation: '表姐夫',
+      group: PersonGroup.family,
+      marriedIn: true, // 姻亲（嫁娶进来的）：大表姐才是血亲，故表姐夫为副位
+    ));
+    _link(cousin.id, cousinHusband.id);
+
+    final grandNephew = _put(Person(
+      id: _nextPersonId,
+      realName: '赵狗蛋',
+      nickname: '狗蛋',
+      gender: Gender.male,
+      birthDate: DateTime(2018, 4, 18),
+      customAppellation: '表侄',
+      group: PersonGroup.family,
+      fatherId: cousinHusband.id,
+      motherId: cousin.id,
+    ));
+
+    // 圈子：朋友（平面 + 标签）
+    _put(Person(
+      id: _nextPersonId,
+      realName: '陈晓明',
+      nickname: '老陈',
+      gender: Gender.male,
+      birthDate: DateTime(1995, 2, 14),
+      group: PersonGroup.circle,
+      phone: '13912345678',
+      email: 'laochen@example.com',
+      tags: ['大学室友', '骑行搭子'],
+    ));
+    _put(Person(
+      id: _nextPersonId,
+      realName: '林婷',
+      gender: Gender.female,
+      birthDate: DateTime(1996, 7, 30),
+      group: PersonGroup.circle,
+      tags: ['前公司同事'],
+    ));
+
+    // 回忆 / 人情往来：与大表姐(id=cousin.id)的金钱往来 + 一次共同经历
+    _put2(Event(
+      id: _nextEventId,
+      type: EventType.material,
+      title: '大表姐结婚随礼',
+      occurDate: DateTime(2021, 10, 2),
+      direction: MoneyDirection.expense,
+      amount: 5000,
+      boundPersonIds: [cousin.id, cousinHusband.id],
+      detail: '婚礼在老家办的，随了 5000。',
+    ));
+    _put2(Event(
+      id: _nextEventId,
+      type: EventType.material,
+      title: '我生日表姐回礼',
+      occurDate: DateTime(2022, 6, 1),
+      direction: MoneyDirection.income,
+      amount: 3000,
+      boundPersonIds: [cousin.id],
+    ));
+    _put2(Event(
+      id: _nextEventId,
+      type: EventType.experience,
+      title: '两家自驾去迪士尼',
+      occurDate: DateTime(2023, 5, 1),
+      boundPersonIds: [cousin.id, cousinHusband.id],
+      detail: '小辈狗蛋很喜欢，玩了一整天。',
+    ));
+    _put2(Event(
+      id: _nextEventId,
+      type: EventType.milestone,
+      title: '狗蛋今天上小学',
+      occurDate: DateTime(2024, 9, 1),
+      boundPersonIds: [grandNephew.id], // 绑到狗蛋
+    ));
+  }
+
+  Person _put(Person p) {
+    _persons[p.id] = p;
+    return p;
+  }
+
+  Event _put2(Event e) {
+    _events[e.id] = e;
+    return e;
+  }
+
+  // ============ 人物 ============
+
+  @override
+  Future<List<Person>> getAllPersons() async => _persons.values.toList();
+
+  @override
+  Future<Person?> getPerson(int id) async => _persons[id];
+
+  @override
+  Future<List<Person>> getPersonsByGroup(PersonGroup group) async =>
+      _persons.values.where((p) => p.group == group).toList();
+
+  @override
+  Future<List<Person>> searchPersons(String query) async {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return getAllPersons();
+    return _persons.values.where((p) {
+      return p.realName.toLowerCase().contains(q) ||
+          (p.nickname?.toLowerCase().contains(q) ?? false) ||
+          p.tags.any((t) => t.toLowerCase().contains(q));
+    }).toList();
+  }
+
+  @override
+  Future<Person> addPerson(Person person) async {
+    final created = person.copyWith(id: _nextPersonId);
+    _persons[created.id] = created;
+    return created;
+  }
+
+  @override
+  Future<void> updatePerson(Person person) async {
+    _persons[person.id] = person;
+  }
+
+  @override
+  Future<void> deletePerson(int id) async {
+    _persons.remove(id);
+    // 清理引用：子女的父母指向、配偶指向。
+    for (final p in _persons.values.toList()) {
+      _persons[p.id] = p.copyWith(
+        fatherId: p.fatherId == id ? null : p.fatherId,
+        motherId: p.motherId == id ? null : p.motherId,
+        spouseId: p.spouseId == id ? null : p.spouseId,
+      );
+    }
+    // 从事件绑定中移除。
+    for (final e in _events.values.toList()) {
+      if (e.boundPersonIds.contains(id)) {
+        _events[e.id] = e.copyWith(
+          boundPersonIds: e.boundPersonIds.where((x) => x != id).toList(),
+        );
+      }
+    }
+  }
+
+  // ============ 家族 ============
+
+  @override
+  Future<List<Person>> getChildren(int parentId) async => _persons.values
+      .where((p) => p.fatherId == parentId || p.motherId == parentId)
+      .toList();
+
+  @override
+  Future<Person> addFather(int childId, Person father) async {
+    final created = await addPerson(father.copyWith(group: PersonGroup.family));
+    final child = _persons[childId];
+    if (child != null) {
+      _persons[childId] = child.copyWith(fatherId: created.id);
+    }
+    return created;
+  }
+
+  @override
+  Future<Person> addMother(int childId, Person mother) async {
+    final created = await addPerson(mother.copyWith(group: PersonGroup.family));
+    final child = _persons[childId];
+    if (child != null) {
+      _persons[childId] = child.copyWith(motherId: created.id);
+    }
+    return created;
+  }
+
+  @override
+  Future<Person> addChild(int parentId, Person child,
+      {bool throughFather = true}) async {
+    final created = await addPerson(child.copyWith(
+      group: PersonGroup.family,
+      fatherId: throughFather ? parentId : null,
+      motherId: throughFather ? null : parentId,
+    ));
+    return created;
+  }
+
+  @override
+  Future<void> setSpouse(int aId, int bId) async => _link(aId, bId);
+
+  @override
+  Future<void> setBloodPrimary(int personId) async {
+    final p = _persons[personId];
+    if (p == null) return;
+    _persons[personId] = p.copyWith(marriedIn: false);
+    final spouseId = p.spouseId;
+    if (spouseId != null && _persons[spouseId] != null) {
+      _persons[spouseId] = _persons[spouseId]!.copyWith(marriedIn: true);
+    }
+  }
+
+  void _link(int aId, int bId) {
+    final a = _persons[aId];
+    final b = _persons[bId];
+    if (a != null) _persons[aId] = a.copyWith(spouseId: bId);
+    if (b != null) _persons[bId] = b.copyWith(spouseId: aId);
+  }
+
+  // ============ 圈子 ============
+
+  @override
+  Future<List<String>> getAllTags() async {
+    final set = <String>{};
+    for (final p in _persons.values) {
+      set.addAll(p.tags);
+    }
+    return set.toList()..sort();
+  }
+
+  @override
+  Future<List<Person>> getPersonsByTag(String tag) async =>
+      _persons.values.where((p) => p.tags.contains(tag)).toList();
+
+  // ============ 事件 ============
+
+  @override
+  Future<List<Event>> getAllEvents() async =>
+      _events.values.toList()..sort((a, b) => b.occurDate.compareTo(a.occurDate));
+
+  @override
+  Future<Event?> getEvent(int id) async => _events[id];
+
+  @override
+  Future<List<Event>> getEventsByPerson(int personId) async => _events.values
+      .where((e) => e.boundPersonIds.contains(personId))
+      .toList()
+    ..sort((a, b) => b.occurDate.compareTo(a.occurDate));
+
+  @override
+  Future<Event> addEvent(Event event) async {
+    final created = event.copyWith(id: _nextEventId);
+    _events[created.id] = created;
+    return created;
+  }
+
+  @override
+  Future<void> updateEvent(Event event) async {
+    _events[event.id] = event;
+  }
+
+  @override
+  Future<void> deleteEvent(int id) async {
+    _events.remove(id);
+  }
+
+  // ============ 差额清算 ============
+
+  @override
+  Future<PersonBalance> getBalanceWith(int personId) async {
+    var income = 0.0;
+    var expense = 0.0;
+    for (final e in _events.values) {
+      if (!e.isMoney || !e.boundPersonIds.contains(personId)) continue;
+      if (e.direction == MoneyDirection.income) {
+        income += e.amount ?? 0;
+      } else if (e.direction == MoneyDirection.expense) {
+        expense += e.amount ?? 0;
+      }
+    }
+    return PersonBalance(totalIncome: income, totalExpense: expense);
+  }
+}

@@ -67,6 +67,8 @@
   "fieldOccurDate": "发生日期",
   "dirExpense": "支出",
   "dirIncome": "收入",
+  "giftGiven": "送出",
+  "giftReceived": "收到",
   "fieldAmount": "金额",
   "relatedPeople": "关联的人",
   "relatedPeopleReq": "关联的人 *",

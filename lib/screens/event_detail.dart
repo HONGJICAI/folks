@@ -210,12 +210,26 @@ class _MoneyLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isExpense = event.direction == MoneyDirection.expense;
+
+    // 无金额 = 实物礼物：只标送出/收到，不显示金钱。
+    if (event.amount == null) {
+      final label =
+          isExpense ? context.l10n.giftGiven : context.l10n.giftReceived;
+      return Row(
+        children: [
+          const Text('🎁 ', style: TextStyle(fontSize: 18)),
+          Text(label,
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16)),
+        ],
+      );
+    }
+
     final color = isExpense ? scheme.error : Colors.green.shade600;
     final dirLabel = event.direction?.label(context.l10n) ?? '';
     return Row(
       children: [
         Text('$dirLabel  ', style: TextStyle(color: color)),
-        Text('¥${event.amount?.toStringAsFixed(0) ?? '0'}',
+        Text('¥${event.amount!.toStringAsFixed(0)}',
             style: TextStyle(
                 color: color, fontWeight: FontWeight.w700, fontSize: 20)),
       ],

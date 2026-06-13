@@ -434,6 +434,18 @@ abstract class AppLocalizations {
   /// **'Income'**
   String get dirIncome;
 
+  /// No description provided for @giftGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift given'**
+  String get giftGiven;
+
+  /// No description provided for @giftReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift received'**
+  String get giftReceived;
+
   /// No description provided for @fieldAmount.
   ///
   /// In en, this message translates to:

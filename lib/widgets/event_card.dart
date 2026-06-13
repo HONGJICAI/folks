@@ -133,11 +133,19 @@ class _AmountBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isExpense = event.direction == MoneyDirection.expense;
-    // 支出红、收入绿。红走主题语义色，避免硬编码。
+
+    // 无金额 = 实物礼物：不显示金钱，只标送出/收到。
+    if (event.amount == null) {
+      final label =
+          isExpense ? context.l10n.giftGiven : context.l10n.giftReceived;
+      return Text('🎁 $label',
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12));
+    }
+
     final color = isExpense ? scheme.error : Colors.green.shade600;
     final sign = isExpense ? '-' : '+';
     return Text(
-      '$sign${event.amount?.toStringAsFixed(0) ?? '0'}',
+      '$sign${event.amount!.toStringAsFixed(0)}',
       style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 15),
     );
   }

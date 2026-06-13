@@ -187,6 +187,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dirIncome => '收入';
 
   @override
+  String get giftGiven => '送出';
+
+  @override
+  String get giftReceived => '收到';
+
+  @override
   String get fieldAmount => '金额';
 
   @override

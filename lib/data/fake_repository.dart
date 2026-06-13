@@ -158,6 +158,24 @@ class FakeRepository implements FolksRepository {
       occurDate: DateTime(2024, 9, 1),
       boundPersonIds: [grandNephew.id], // 绑到狗蛋
     ));
+    // 实物礼物（物质往来但不填金额）：只记送/收，不计入金钱差额。
+    _put2(Event(
+      id: _nextEventId,
+      type: EventType.material,
+      title: '给狗蛋买的乐高',
+      occurDate: DateTime(2023, 4, 18),
+      direction: MoneyDirection.expense,
+      boundPersonIds: [grandNephew.id],
+      detail: '生日礼物，他很喜欢。',
+    ));
+    _put2(Event(
+      id: _nextEventId,
+      type: EventType.material,
+      title: '表姐回赠的土特产',
+      occurDate: DateTime(2023, 2, 10),
+      direction: MoneyDirection.income,
+      boundPersonIds: [cousin.id],
+    ));
   }
 
   Person _put(Person p) {

@@ -72,6 +72,8 @@
   "fieldOccurDate": "Date",
   "dirExpense": "Expense",
   "dirIncome": "Income",
+  "giftGiven": "Gift given",
+  "giftReceived": "Gift received",
   "fieldAmount": "Amount",
   "relatedPeople": "Linked people",
   "relatedPeopleReq": "Linked people *",

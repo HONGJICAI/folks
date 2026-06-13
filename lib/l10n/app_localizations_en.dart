@@ -189,6 +189,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dirIncome => 'Income';
 
   @override
+  String get giftGiven => 'Gift given';
+
+  @override
+  String get giftReceived => 'Gift received';
+
+  @override
   String get fieldAmount => 'Amount';
 
   @override

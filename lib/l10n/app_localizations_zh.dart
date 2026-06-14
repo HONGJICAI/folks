@@ -154,7 +154,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get relationSpouse => '配偶';
 
   @override
-  String get relationNone => '无';
+  String get sectionChildren => '子女';
+
+  @override
+  String get addChild => '添加子女';
+
+  @override
+  String get chooseParentRole => '这位家长是孩子的父亲还是母亲？';
 
   @override
   String get exchangesTitle => '人情往来';
@@ -219,9 +225,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get labelDay => '日';
-
-  @override
-  String get valueNotSet => '未填写';
 
   @override
   String get fieldTags => '标签（空格或逗号分隔）';

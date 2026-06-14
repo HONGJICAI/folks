@@ -13,14 +13,28 @@ import '../widgets/avatar.dart';
 /// - 编辑：传 [existing]，分组取自该成员。
 /// 返回 true 表示已保存（调用方据此刷新）。
 class PersonFormPage extends StatefulWidget {
-  const PersonFormPage({super.key, this.group, this.existing})
-      : assert(group != null || existing != null, '新增需 group，编辑需 existing');
+  const PersonFormPage(
+      {super.key,
+      this.group,
+      this.existing,
+      this.parentOf,
+      this.parentIsFather})
+      : assert(group != null || existing != null || parentOf != null,
+            '需 group / existing / parentOf 之一');
 
   final PersonGroup? group;
   final Person? existing;
 
-  PersonGroup get effectiveGroup => existing?.group ?? group!;
+  /// 从某人详情页「添加子女」时传入：新成员的家长，分组跟随 ta。
+  final Person? parentOf;
+
+  /// 家长是父(true)还是母(false)。省略则按家长性别推断（女=母，否则父）。
+  final bool? parentIsFather;
+
+  PersonGroup get effectiveGroup =>
+      existing?.group ?? parentOf?.group ?? group ?? PersonGroup.family;
   bool get isEditing => existing != null;
+  bool get isAddingChild => existing == null && parentOf != null;
 
   @override
   State<PersonFormPage> createState() => _PersonFormPageState();
@@ -84,6 +98,17 @@ class _PersonFormPageState extends State<PersonFormPage> {
       _fatherId = e.fatherId;
       _motherId = e.motherId;
       _spouseId = e.spouseId;
+    }
+
+    // 「添加子女」：预设父/母链接。显式 parentIsFather 优先，否则按家长性别推断。
+    final parent = widget.parentOf;
+    if (parent != null) {
+      final isFather = widget.parentIsFather ?? (parent.gender != Gender.female);
+      if (isFather) {
+        _fatherId = parent.id;
+      } else {
+        _motherId = parent.id;
+      }
     }
 
     if (_isFamily) {
@@ -298,8 +323,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
       customAppellation: nn(_appellation),
       memo: nn(_memo),
       group: widget.effectiveGroup,
-      fatherId: _isFamily ? _fatherId : null,
-      motherId: _isFamily ? _motherId : null,
+      fatherId: _fatherId, // 圈子的孩子也可有家长链接（仅家族显示选择器）
+      motherId: _motherId,
       spouseId: _isFamily ? oldSpouse : null,
       marriedIn: widget.existing?.marriedIn ?? false,
       isSelf: widget.existing?.isSelf ?? false, // "我"固定，新增的人都不是
@@ -340,7 +365,9 @@ class _PersonFormPageState extends State<PersonFormPage> {
       appBar: AppBar(
         title: Text(widget.isEditing
             ? t.editProfile
-            : (_isFamily ? t.addFamilyMember : t.addFriend)),
+            : widget.isAddingChild
+                ? t.addChild
+                : (_isFamily ? t.addFamilyMember : t.addFriend)),
         actions: [
           TextButton(onPressed: _save, child: Text(t.actionSave)),
         ],
@@ -529,7 +556,7 @@ class _RelationPicker extends StatelessWidget {
       decoration:
           InputDecoration(labelText: label, border: const OutlineInputBorder()),
       items: [
-        DropdownMenuItem<int?>(value: null, child: Text(context.l10n.relationNone)),
+        const DropdownMenuItem<int?>(value: null, child: Text('—')),
         for (final m in members)
           DropdownMenuItem<int?>(value: m.id, child: Text(m.displayName)),
       ],

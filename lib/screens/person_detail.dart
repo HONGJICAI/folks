@@ -24,11 +24,12 @@ class PersonDetailPage extends StatefulWidget {
 }
 
 class _DetailData {
-  _DetailData(this.person, this.events, this.balance, this.byId);
+  _DetailData(this.person, this.events, this.balance, this.byId, this.children);
   final Person? person;
   final List<Event> events;
   final PersonBalance balance;
   final Map<int, Person> byId;
+  final List<Person> children; // 父/母指向该人的成员
 }
 
 class _PersonDetailPageState extends State<PersonDetailPage> {
@@ -101,12 +102,50 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     final events = await _repo.getEventsByPerson(widget.personId);
     final balance = await _repo.getBalanceWith(widget.personId);
     final all = await _repo.getAllPersons();
+    final children = all
+        .where((p) =>
+            p.fatherId == widget.personId || p.motherId == widget.personId)
+        .toList();
     return _DetailData(
       person,
       events,
       balance,
       {for (final p in all) p.id: p},
+      children,
     );
+  }
+
+  Future<void> _addChild(Person parent) async {
+    bool? isFather;
+    if (parent.gender == Gender.male) {
+      isFather = true;
+    } else if (parent.gender == Gender.female) {
+      isFather = false;
+    } else {
+      // 性别未知：问一下父/母（用户可取消）。
+      isFather = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(ctx.l10n.chooseParentRole),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(ctx.l10n.relationFather)),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(ctx.l10n.relationMother)),
+          ],
+        ),
+      );
+      if (isFather == null) return; // 取消
+    }
+    if (!mounted) return;
+    final added = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+          builder: (_) =>
+              PersonFormPage(parentOf: parent, parentIsFather: isFather)),
+    );
+    if (added == true) _reload();
   }
 
   @override
@@ -157,6 +196,14 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
               if (person.group == PersonGroup.family)
                 _Relations(person: person, byId: data.byId, onTap: _open),
               _ContactInfo(person: person),
+              const SizedBox(height: Dim.gap),
+              _ChildrenSection(
+                children: data.children,
+                // 年龄已知且未满 18 则不显示「添加子女」（数据合理性软门槛）；年龄未知照常显示。
+                showAdd: (person.ageAt(DateTime.now()) ?? 99) >= 18,
+                onOpen: _open,
+                onAdd: () => _addChild(person),
+              ),
               if (data.balance.hasAny) ...[
                 const SizedBox(height: Dim.gap),
                 _BalancePanel(balance: data.balance),
@@ -277,6 +324,48 @@ class _Relations extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(children: rows),
+    );
+  }
+}
+
+/// 子女区：列出父/母指向该人的成员，并提供「添加子女」（家族/圈子通用）。
+class _ChildrenSection extends StatelessWidget {
+  const _ChildrenSection(
+      {required this.children,
+      required this.showAdd,
+      required this.onOpen,
+      required this.onAdd});
+  final List<Person> children;
+  final bool showAdd;
+  final void Function(int personId) onOpen;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    // 既无子女、又不允许添加 → 整块不显示。
+    if (children.isEmpty && !showAdd) return const SizedBox.shrink();
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (final c in children)
+            ListTile(
+              dense: true,
+              leading: Avatar(name: c.name, photoPath: c.photoPath, radius: 16),
+              title: Text(c.displayName),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: () => onOpen(c.id),
+            ),
+          if (showAdd)
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.person_add_alt, size: 18),
+              title: Text(t.addChild),
+              onTap: onAdd,
+            ),
+        ],
+      ),
     );
   }
 }

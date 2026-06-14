@@ -157,7 +157,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get relationSpouse => 'Spouse';
 
   @override
-  String get relationNone => 'None';
+  String get sectionChildren => 'Children';
+
+  @override
+  String get addChild => 'Add child';
+
+  @override
+  String get chooseParentRole => 'Is this parent the father or mother?';
 
   @override
   String get exchangesTitle => 'Exchanges';
@@ -222,9 +228,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelDay => 'Day';
-
-  @override
-  String get valueNotSet => 'Not set';
 
   @override
   String get fieldTags => 'Tags (space or comma separated)';

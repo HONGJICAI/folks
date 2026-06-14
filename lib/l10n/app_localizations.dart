@@ -380,11 +380,23 @@ abstract class AppLocalizations {
   /// **'Spouse'**
   String get relationSpouse;
 
-  /// No description provided for @relationNone.
+  /// No description provided for @sectionChildren.
   ///
   /// In en, this message translates to:
-  /// **'None'**
-  String get relationNone;
+  /// **'Children'**
+  String get sectionChildren;
+
+  /// No description provided for @addChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Add child'**
+  String get addChild;
+
+  /// No description provided for @chooseParentRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this parent the father or mother?'**
+  String get chooseParentRole;
 
   /// No description provided for @exchangesTitle.
   ///
@@ -505,12 +517,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Day'**
   String get labelDay;
-
-  /// No description provided for @valueNotSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set'**
-  String get valueNotSet;
 
   /// No description provided for @fieldTags.
   ///

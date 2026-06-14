@@ -59,6 +59,9 @@ abstract class FolksRepository {
   /// 家族树里"主副对调"即调用此方法把副位提升为主位。
   Future<void> setBloodPrimary(int personId);
 
+  /// 指定"我自己"（全局唯一）：该人 isSelf=true，其余全部置 false。
+  Future<void> setSelf(int personId);
+
   // ============ 圈子（标签） ============
 
   /// 当前所有用过的标签（去重）。

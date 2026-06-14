@@ -12,20 +12,17 @@ import 'package:flutter/material.dart';
 
 enum AppStyle { clean, play }
 
-/// 当前启用的风格。想切回清爽白改成 [AppStyle.clean] 即可。
-const AppStyle appStyle = AppStyle.play;
-
 class AppTheme {
   AppTheme._();
 
   /// 品牌主色：利落的蓝。换主色改这里。
   static const Color seed = Color(0xFF2563EB);
 
-  static ThemeData light() => _forStyle(Brightness.light);
-  static ThemeData dark() => _forStyle(Brightness.dark);
+  static ThemeData light(AppStyle style) => _forStyle(style, Brightness.light);
+  static ThemeData dark(AppStyle style) => _forStyle(style, Brightness.dark);
 
-  static ThemeData _forStyle(Brightness brightness) {
-    return switch (appStyle) {
+  static ThemeData _forStyle(AppStyle style, Brightness brightness) {
+    return switch (style) {
       AppStyle.clean => _clean(brightness),
       AppStyle.play => _play(brightness),
     };

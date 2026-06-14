@@ -7,7 +7,6 @@ import '../l10n/l10n.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
 import '../widgets/empty_hint.dart';
-import '../widgets/language_toggle.dart';
 import '../widgets/search_button.dart';
 import 'person_detail.dart';
 import 'person_form.dart';
@@ -66,7 +65,7 @@ class _CircleTabState extends State<CircleTab> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.tabCircle),
-        actions: const [SearchButton(), LanguageToggle()],
+        actions: const [SearchButton()],
       ),
       body: FutureBuilder<List<Person>>(
         future: _future,

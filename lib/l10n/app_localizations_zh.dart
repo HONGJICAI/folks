@@ -21,6 +21,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tabMemory => '回忆';
 
   @override
+  String get tabMe => '我';
+
+  @override
+  String get settingsSection => '设置';
+
+  @override
+  String get settingLanguage => '语言';
+
+  @override
+  String get optionSystem => '跟随系统';
+
+  @override
+  String get optionLight => '浅色';
+
+  @override
+  String get optionDark => '深色';
+
+  @override
+  String get settingTheme => '主题风格';
+
+  @override
+  String get themeClean => '清爽';
+
+  @override
+  String get settingAppearance => '深色模式';
+
+  @override
+  String get settingAppLock => '应用锁';
+
+  @override
+  String get settingBackup => '备份与导出';
+
+  @override
+  String get settingImport => '从通讯录导入';
+
+  @override
+  String get settingAbout => '关于';
+
+  @override
+  String get comingSoon => '待实现';
+
+  @override
+  String get meNoSelf => '还没设置\"我\"。打开某位家族成员，把 TA 标记为你自己。';
+
+  @override
   String get searchHint => '搜索身边人与回忆';
 
   @override
@@ -135,6 +180,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String deleteMemberBody(String name) {
     return '确定删除「$name」吗？\n与 TA 的亲属/配偶关系会被解除，回忆记录里也会移除 TA。';
   }
+
+  @override
+  String get markAsSelf => '这是我自己';
 
   @override
   String get editProfile => '编辑资料';

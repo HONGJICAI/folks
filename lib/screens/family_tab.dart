@@ -7,7 +7,6 @@ import '../models/person.dart';
 import '../widgets/empty_hint.dart';
 import '../widgets/family_list_view.dart';
 import '../widgets/family_tree_chart.dart';
-import '../widgets/language_toggle.dart';
 import '../widgets/search_button.dart';
 import 'person_detail.dart';
 import 'person_form.dart';
@@ -82,7 +81,6 @@ class _FamilyTabState extends State<FamilyTab> {
             tooltip: _treeView ? context.l10n.viewList : context.l10n.viewTree,
             onPressed: () => setState(() => _treeView = !_treeView),
           ),
-          const LanguageToggle(),
         ],
       ),
       body: FutureBuilder<List<Person>>(

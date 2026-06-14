@@ -334,6 +334,18 @@ class FakeRepository implements FolksRepository {
     _bus.ping();
   }
 
+  @override
+  Future<void> setSelf(int personId) async {
+    if (_persons[personId] == null) return;
+    for (final p in _persons.values.toList()) {
+      final shouldBe = p.id == personId;
+      if (p.isSelf != shouldBe) {
+        _persons[p.id] = p.copyWith(isSelf: shouldBe);
+      }
+    }
+    _bus.ping();
+  }
+
   void _link(int aId, int bId) {
     final a = _persons[aId];
     final b = _persons[bId];

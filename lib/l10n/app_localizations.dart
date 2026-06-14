@@ -122,6 +122,96 @@ abstract class AppLocalizations {
   /// **'Memories'**
   String get tabMemory;
 
+  /// No description provided for @tabMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get tabMe;
+
+  /// No description provided for @settingsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsSection;
+
+  /// No description provided for @settingLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingLanguage;
+
+  /// No description provided for @optionSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get optionSystem;
+
+  /// No description provided for @optionLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get optionLight;
+
+  /// No description provided for @optionDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get optionDark;
+
+  /// No description provided for @settingTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingTheme;
+
+  /// No description provided for @themeClean.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean'**
+  String get themeClean;
+
+  /// No description provided for @settingAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode'**
+  String get settingAppearance;
+
+  /// No description provided for @settingAppLock.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock'**
+  String get settingAppLock;
+
+  /// No description provided for @settingBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & export'**
+  String get settingBackup;
+
+  /// No description provided for @settingImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from contacts'**
+  String get settingImport;
+
+  /// No description provided for @settingAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingAbout;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
+
+  /// No description provided for @meNoSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'No \"Me\" set yet. Open a family member and mark them as you.'**
+  String get meNoSelf;
+
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:
@@ -337,6 +427,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete \"{name}\"? Their family / spouse links will be removed, and they\'ll be unlinked from memories.'**
   String deleteMemberBody(String name);
+
+  /// No description provided for @markAsSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'This is me'**
+  String get markAsSelf;
 
   /// No description provided for @editProfile.
   ///

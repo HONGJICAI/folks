@@ -77,6 +77,16 @@ void main() {
       expect(after!.boundPersonIds, isEmpty); // 仅解绑
     });
 
+    test('setSelf 全局唯一：旧的"我"被清除', () async {
+      final repo = FakeRepository();
+      final a = await repo.addPerson(const Person(id: 0, realName: 'A'));
+      final b = await repo.addPerson(const Person(id: 0, realName: 'B'));
+      await repo.setSelf(a.id);
+      await repo.setSelf(b.id);
+      expect((await repo.getPerson(a.id))!.isSelf, isFalse);
+      expect((await repo.getPerson(b.id))!.isSelf, isTrue);
+    });
+
     test('任意变更会触发 changes 通知', () async {
       final repo = FakeRepository();
       var fired = 0;

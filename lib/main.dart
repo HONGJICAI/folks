@@ -7,7 +7,9 @@ import 'l10n/l10n.dart';
 import 'locale_controller.dart';
 import 'screens/circle_tab.dart';
 import 'screens/family_tab.dart';
+import 'screens/me_tab.dart';
 import 'screens/memory_tab.dart';
+import 'settings_controller.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -19,18 +21,19 @@ class FolksApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Repository（数据层）+ LocaleController（语言）一起注入全 App。
     return MultiProvider(
       providers: [
         Provider<FolksRepository>(create: (_) => FakeRepository()),
         ChangeNotifierProvider(create: (_) => LocaleController()),
+        ChangeNotifierProvider(create: (_) => SettingsController()),
       ],
-      child: Consumer<LocaleController>(
-        builder: (context, localeCtrl, _) => MaterialApp(
+      child: Consumer2<LocaleController, SettingsController>(
+        builder: (context, localeCtrl, settings, _) => MaterialApp(
           onGenerateTitle: (ctx) => ctx.l10n.appTitle,
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
+          theme: AppTheme.light(settings.style),
+          darkTheme: AppTheme.dark(settings.style),
+          themeMode: settings.themeMode,
           locale: localeCtrl.locale, // null = 跟随系统
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -41,7 +44,7 @@ class FolksApp extends StatelessWidget {
   }
 }
 
-/// 底部三 Tab 导航外壳。
+/// 底部四 Tab 导航外壳。
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -56,6 +59,7 @@ class _HomeShellState extends State<HomeShell> {
     FamilyTab(),
     CircleTab(),
     MemoryTab(),
+    MeTab(),
   ];
 
   @override
@@ -81,6 +85,11 @@ class _HomeShellState extends State<HomeShell> {
             icon: const Icon(Icons.favorite_outline),
             selectedIcon: const Icon(Icons.favorite),
             label: t.tabMemory,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            label: t.tabMe,
           ),
         ],
       ),

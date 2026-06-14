@@ -43,6 +43,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
   int? _fatherId;
   int? _motherId;
   int? _spouseId;
+  bool _isSelf = false;
   List<Person> _familyMembers = const [];
 
   bool get _isFamily => widget.effectiveGroup == PersonGroup.family;
@@ -66,6 +67,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
       _fatherId = e.fatherId;
       _motherId = e.motherId;
       _spouseId = e.spouseId;
+      _isSelf = e.isSelf;
     }
 
     if (_isFamily) {
@@ -135,6 +137,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
       motherId: _isFamily ? _motherId : null,
       spouseId: _isFamily ? oldSpouse : null,
       marriedIn: widget.existing?.marriedIn ?? false,
+      isSelf: _isFamily && _isSelf,
       phone: nn(_phone),
       email: nn(_email),
       tags: _isFamily ? const [] : tags,
@@ -154,6 +157,10 @@ class _PersonFormPageState extends State<PersonFormPage> {
       } else {
         await _repo.setSpouse(id, _spouseId!);
       }
+    }
+    // 标记"我自己"（全局唯一，清掉其他人的标记）。
+    if (_isFamily && _isSelf) {
+      await _repo.setSelf(id);
     }
     if (mounted) Navigator.of(context).pop(true);
   }
@@ -260,6 +267,14 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 members: _familyMembers,
                 value: _spouseId,
                 onChanged: (v) => setState(() => _spouseId = v),
+              ),
+              const SizedBox(height: Dim.gap),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: const Icon(Icons.person_pin_circle_outlined),
+                title: Text(t.markAsSelf),
+                value: _isSelf,
+                onChanged: (v) => setState(() => _isSelf = v),
               ),
               const SizedBox(height: Dim.gap),
             ] else ...[

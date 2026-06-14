@@ -21,6 +21,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabMemory => 'Memories';
 
   @override
+  String get tabMe => 'Me';
+
+  @override
+  String get settingsSection => 'Settings';
+
+  @override
+  String get settingLanguage => 'Language';
+
+  @override
+  String get optionSystem => 'System';
+
+  @override
+  String get optionLight => 'Light';
+
+  @override
+  String get optionDark => 'Dark';
+
+  @override
+  String get settingTheme => 'Theme';
+
+  @override
+  String get themeClean => 'Clean';
+
+  @override
+  String get settingAppearance => 'Dark mode';
+
+  @override
+  String get settingAppLock => 'App lock';
+
+  @override
+  String get settingBackup => 'Backup & export';
+
+  @override
+  String get settingImport => 'Import from contacts';
+
+  @override
+  String get settingAbout => 'About';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get meNoSelf =>
+      'No \"Me\" set yet. Open a family member and mark them as you.';
+
+  @override
   String get searchHint => 'Search people & memories';
 
   @override
@@ -137,6 +183,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String deleteMemberBody(String name) {
     return 'Delete \"$name\"? Their family / spouse links will be removed, and they\'ll be unlinked from memories.';
   }
+
+  @override
+  String get markAsSelf => 'This is me';
 
   @override
   String get editProfile => 'Edit profile';

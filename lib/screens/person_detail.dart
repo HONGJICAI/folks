@@ -11,6 +11,7 @@ import '../l10n/l10n.dart';
 import '../widgets/avatar.dart';
 import '../widgets/event_card.dart';
 import 'event_detail.dart';
+import 'event_form.dart';
 import 'person_form.dart';
 
 /// 成员详情页：头部资料 + 差额清算面板 + 个人时光轴。
@@ -66,6 +67,15 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
       MaterialPageRoute(builder: (_) => EventDetailPage(eventId: event.id)),
     );
     _reload(); // 详情里可能编辑/删除
+  }
+
+  /// 快捷「记一笔」：自动绑定当前这个人。
+  Future<void> _addMemory(int personId) async {
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+          builder: (_) => EventFormPage(presetPersonIds: [personId])),
+    );
+    if (saved == true) _reload();
   }
 
   Future<void> _deletePerson() async {
@@ -209,8 +219,18 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                 _BalancePanel(balance: data.balance),
               ],
               const SizedBox(height: 24),
-              Text(context.l10n.timelineTitle,
-                  style: Theme.of(context).textTheme.titleMedium),
+              Row(
+                children: [
+                  Text(context.l10n.timelineTitle,
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () => _addMemory(person.id),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(context.l10n.recordEntry),
+                  ),
+                ],
+              ),
               const SizedBox(height: Dim.gap),
               if (data.events.isEmpty)
                 Padding(

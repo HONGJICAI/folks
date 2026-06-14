@@ -12,9 +12,14 @@ import '../widgets/local_image.dart';
 /// 记一笔回忆 / 人情往来：新增或编辑。传 [existing] 进入编辑模式。
 /// 返回 true 表示已保存。
 class EventFormPage extends StatefulWidget {
-  const EventFormPage({super.key, this.existing});
+  const EventFormPage(
+      {super.key, this.existing, this.presetPersonIds = const []});
 
   final Event? existing;
+
+  /// 新增时预先勾选的人物（如从某人详情页「记一笔」自动绑定 ta）。
+  final List<int> presetPersonIds;
+
   bool get isEditing => existing != null;
 
   @override
@@ -57,6 +62,7 @@ class _EventFormPageState extends State<EventFormPage> {
       _tags.text = e.tags.join(' ');
     } else {
       _occurDate = DateTime.now();
+      _selected.addAll(widget.presetPersonIds); // 预绑定（详情页「记一笔」）
     }
 
     _repo.getAllPersons().then((list) {

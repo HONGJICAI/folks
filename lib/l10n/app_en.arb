@@ -71,7 +71,8 @@
 
   "markAsSelf": "This is me",
   "editProfile": "Edit profile",
-  "fieldRealName": "Full name *",
+  "fieldDisplayName": "Display name *",
+  "fieldRealName": "Real name (optional)",
   "validateName": "Please enter a name",
   "fieldNickname": "Nickname",
   "fieldAppellation": "Custom appellation (e.g. Big Cousin)",

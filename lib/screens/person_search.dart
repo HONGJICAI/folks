@@ -121,7 +121,7 @@ class _PersonTile extends StatelessWidget {
     ].join(' · ');
 
     return ListTile(
-      leading: Avatar(name: person.realName, photoPath: person.photoPath, radius: 18),
+      leading: Avatar(name: person.name, photoPath: person.photoPath, radius: 18),
       title: Text(person.displayName),
       subtitle: Text(subtitle),
       trailing: const Icon(Icons.chevron_right, size: 18),

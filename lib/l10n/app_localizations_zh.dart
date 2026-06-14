@@ -188,10 +188,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get editProfile => '编辑资料';
 
   @override
-  String get fieldRealName => '真实姓名 *';
+  String get fieldDisplayName => '显示名 *';
 
   @override
-  String get validateName => '请填写姓名';
+  String get fieldRealName => '真名（选填）';
+
+  @override
+  String get validateName => '请填写名字';
 
   @override
   String get fieldNickname => '小名 / 乳名';

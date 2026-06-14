@@ -168,7 +168,7 @@ class _FamilyRowState extends State<_FamilyRow> {
             EdgeInsets.fromLTRB(Dim.pad + widget.depth * 20.0, 12, Dim.pad, 12),
         child: Row(
           children: [
-            Avatar(name: _primary.realName, photoPath: _primary.photoPath),
+            Avatar(name: _primary.name, photoPath: _primary.photoPath),
             const SizedBox(width: Dim.gap),
             Expanded(
               child: Column(

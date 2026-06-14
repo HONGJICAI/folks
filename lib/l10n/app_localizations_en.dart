@@ -191,7 +191,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editProfile => 'Edit profile';
 
   @override
-  String get fieldRealName => 'Full name *';
+  String get fieldDisplayName => 'Display name *';
+
+  @override
+  String get fieldRealName => 'Real name (optional)';
 
   @override
   String get validateName => 'Please enter a name';

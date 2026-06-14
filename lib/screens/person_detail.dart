@@ -169,7 +169,7 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Center(
-                    child: Text(context.l10n.noRecordsWith(person.realName),
+                    child: Text(context.l10n.noRecordsWith(person.displayName),
                         style: Theme.of(context).textTheme.bodySmall),
                   ),
                 )
@@ -210,7 +210,7 @@ class _Header extends StatelessWidget {
 
     return Row(
       children: [
-        Avatar(name: person.realName, photoPath: person.photoPath, radius: 32),
+        Avatar(name: person.name, photoPath: person.photoPath, radius: 32),
         const SizedBox(width: Dim.pad),
         Expanded(
           child: Column(

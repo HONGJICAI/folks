@@ -327,7 +327,7 @@ class _NodeBox extends StatelessWidget {
         child: Row(
           children: [
             Avatar(
-                name: p.realName,
+                name: p.name,
                 photoPath: p.photoPath,
                 radius: single ? 14 : 12),
             const SizedBox(width: 6),

@@ -440,10 +440,16 @@ abstract class AppLocalizations {
   /// **'Edit profile'**
   String get editProfile;
 
+  /// No description provided for @fieldDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name *'**
+  String get fieldDisplayName;
+
   /// No description provided for @fieldRealName.
   ///
   /// In en, this message translates to:
-  /// **'Full name *'**
+  /// **'Real name (optional)'**
   String get fieldRealName;
 
   /// No description provided for @validateName.

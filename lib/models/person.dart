@@ -47,10 +47,12 @@ class Person {
   static const Object _unset = Object();
 
   final int id;
-  final String realName;
 
-  /// 小名 / 乳名，如「狗蛋」。
-  final String? nickname;
+  /// 显示名（必填）：列表/树/搜索都用它。填你最习惯怎么叫——真名、小名、"大伯"都行。
+  final String name;
+
+  /// 真名 / 全名（选填）：正式场合或 vCard 导出用；隐私或图省事可不填。
+  final String? realName;
   final Gender gender;
   final DateTime? birthDate;
 
@@ -99,8 +101,8 @@ class Person {
 
   const Person({
     required this.id,
-    required this.realName,
-    this.nickname,
+    required this.name,
+    this.realName,
     this.gender = Gender.unknown,
     this.birthDate,
     this.birthPrecision = BirthPrecision.full,
@@ -121,8 +123,8 @@ class Person {
   });
 
   /// 显示用名称：有小名时「真名(小名)」，否则真名。
-  String get displayName =>
-      nickname == null || nickname!.isEmpty ? realName : '$realName($nickname)';
+  /// 显示用名称：就是 [name]。保留这个 getter 让调用方语义清晰、未来可扩展。
+  String get displayName => name;
 
   /// 周岁。无生日时返回 null。注意：这里用注入的 [now] 以便测试，
   /// 调用方传 DateTime.now() 即可。
@@ -165,8 +167,8 @@ class Person {
   /// 省略 = 保持原值；显式传 `null` = 真正清空。普通 `?? this.x` 写法做不到后者。
   Person copyWith({
     int? id,
+    String? name,
     String? realName,
-    String? nickname,
     Gender? gender,
     DateTime? birthDate,
     BirthPrecision? birthPrecision,
@@ -187,8 +189,8 @@ class Person {
   }) {
     return Person(
       id: id ?? this.id,
+      name: name ?? this.name,
       realName: realName ?? this.realName,
-      nickname: nickname ?? this.nickname,
       gender: gender ?? this.gender,
       birthDate: birthDate ?? this.birthDate,
       birthPrecision: birthPrecision ?? this.birthPrecision,
@@ -212,8 +214,8 @@ class Person {
   /// 供未来 SQLite 持久化使用。列表字段用分号拼接（与 README CSV 导出规范一致）。
   Map<String, Object?> toMap() => {
         'id': id,
+        'name': name,
         'real_name': realName,
-        'nickname': nickname,
         'gender': gender.name,
         'birth_date': birthDate?.toIso8601String(),
         'birth_precision': birthPrecision.name,
@@ -235,8 +237,8 @@ class Person {
 
   factory Person.fromMap(Map<String, Object?> m) => Person(
         id: m['id'] as int,
-        realName: m['real_name'] as String,
-        nickname: m['nickname'] as String?,
+        name: m['name'] as String,
+        realName: m['real_name'] as String?,
         gender: Gender.values.byName((m['gender'] as String?) ?? 'unknown'),
         birthDate: m['birth_date'] == null
             ? null

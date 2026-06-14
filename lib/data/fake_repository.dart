@@ -38,7 +38,7 @@ class FakeRepository implements FolksRepository {
     // 家族：我 - 父母 - 大表姐(姑姑的女儿) - 表侄
     final me = _put(Person(
       id: _nextPersonId,
-      realName: '我',
+      name: '我',
       gender: Gender.male,
       birthDate: DateTime(1995, 6, 1),
       group: PersonGroup.family,
@@ -46,8 +46,7 @@ class FakeRepository implements FolksRepository {
     ));
     final dad = _put(Person(
       id: _nextPersonId,
-      realName: '张建国',
-      nickname: '老爸',
+      name: '张建国',
       gender: Gender.male,
       birthDate: DateTime(1968),
       birthPrecision: BirthPrecision.year, // 只知年份：算年龄、不进生日提醒
@@ -57,7 +56,7 @@ class FakeRepository implements FolksRepository {
     ));
     final mom = _put(Person(
       id: _nextPersonId,
-      realName: '李秀兰',
+      name: '李秀兰',
       gender: Gender.female,
       birthDate: DateTime(1970, 9, 20),
       customAppellation: '妈妈',
@@ -71,7 +70,7 @@ class FakeRepository implements FolksRepository {
     final wed = DateTime.now().add(const Duration(days: 10));
     final cousin = _put(Person(
       id: _nextPersonId,
-      realName: '王丽',
+      name: '王丽',
       gender: Gender.female,
       birthDate: DateTime(1992, 11, 5),
       customAppellation: '大表姐',
@@ -83,7 +82,7 @@ class FakeRepository implements FolksRepository {
     ));
     final cousinHusband = _put(Person(
       id: _nextPersonId,
-      realName: '赵强',
+      name: '赵强',
       gender: Gender.male,
       birthDate: DateTime(1990, 1, 8),
       customAppellation: '表姐夫',
@@ -94,8 +93,8 @@ class FakeRepository implements FolksRepository {
 
     final grandNephew = _put(Person(
       id: _nextPersonId,
-      realName: '赵狗蛋',
-      nickname: '狗蛋',
+      name: '狗蛋',
+      realName: '赵狗蛋', // 演示选填真名
       gender: Gender.male,
       birthDate: DateTime(2018, 4, 18),
       customAppellation: '表侄',
@@ -107,8 +106,7 @@ class FakeRepository implements FolksRepository {
     // 圈子：朋友（平面 + 标签）
     _put(Person(
       id: _nextPersonId,
-      realName: '陈晓明',
-      nickname: '老陈',
+      name: '陈晓明',
       gender: Gender.male,
       birthDate: DateTime(1995, 2, 14),
       group: PersonGroup.circle,
@@ -121,7 +119,7 @@ class FakeRepository implements FolksRepository {
     final soon = DateTime.now().add(const Duration(days: 6));
     _put(Person(
       id: _nextPersonId,
-      realName: '林婷',
+      name: '林婷',
       gender: Gender.female,
       birthDate: DateTime(1996, soon.month, soon.day),
       group: PersonGroup.circle,
@@ -219,8 +217,9 @@ class FakeRepository implements FolksRepository {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return getAllPersons();
     return _persons.values.where((p) {
-      return p.realName.toLowerCase().contains(q) ||
-          (p.nickname?.toLowerCase().contains(q) ?? false) ||
+      return p.name.toLowerCase().contains(q) ||
+          (p.realName?.toLowerCase().contains(q) ?? false) ||
+          (p.customAppellation?.toLowerCase().contains(q) ?? false) ||
           p.tags.any((t) => t.toLowerCase().contains(q));
     }).toList();
   }

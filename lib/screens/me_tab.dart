@@ -147,7 +147,7 @@ class _SelfCard extends StatelessWidget {
     return ListTile(
       contentPadding:
           const EdgeInsets.symmetric(horizontal: Dim.pad, vertical: 8),
-      leading: Avatar(name: p.realName, photoPath: p.photoPath, radius: 28),
+      leading: Avatar(name: p.name, photoPath: p.photoPath, radius: 28),
       title: Text(p.displayName, style: theme.textTheme.titleLarge),
       subtitle: meta.isEmpty ? null : Text(meta),
       trailing: const Icon(Icons.chevron_right),
@@ -190,7 +190,7 @@ class _ReminderTile extends StatelessWidget {
         : '${item.anniLabel} · ${t.anniversaryYears(item.count)}';
     return ListTile(
       leading: Avatar(
-          name: item.person.realName,
+          name: item.person.name,
           photoPath: item.person.photoPath,
           radius: 18),
       title: Text(item.person.displayName),

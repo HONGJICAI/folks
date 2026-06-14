@@ -30,8 +30,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
   late final FolksRepository _repo;
   final _formKey = GlobalKey<FormState>();
 
-  final _name = TextEditingController();
-  final _nickname = TextEditingController();
+  final _name = TextEditingController(); // 显示名（必填）
+  final _realName = TextEditingController(); // 真名（选填）
   final _appellation = TextEditingController();
   final _phone = TextEditingController();
   final _email = TextEditingController();
@@ -61,8 +61,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
 
     final e = widget.existing;
     if (e != null) {
-      _name.text = e.realName;
-      _nickname.text = e.nickname ?? '';
+      _name.text = e.name;
+      _realName.text = e.realName ?? '';
       _appellation.text = e.customAppellation ?? '';
       _phone.text = e.phone ?? '';
       _email.text = e.email ?? '';
@@ -101,7 +101,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
   void dispose() {
     for (final c in [
       _name,
-      _nickname,
+      _realName,
       _appellation,
       _phone,
       _email,
@@ -288,8 +288,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
     // 配偶字段先沿用旧值，改动统一交给 setSpouse/clearSpouse 双向处理（见下）。
     final person = Person(
       id: widget.existing?.id ?? 0, // 新增时 addPerson 赋真实 id
-      realName: _name.text.trim(),
-      nickname: nn(_nickname),
+      name: _name.text.trim(),
+      realName: nn(_realName),
       gender: _gender,
       birthDate: bd,
       birthPrecision: bp,
@@ -378,16 +378,16 @@ class _PersonFormPageState extends State<PersonFormPage> {
             TextFormField(
               controller: _name,
               decoration: InputDecoration(
-                  labelText: t.fieldRealName,
+                  labelText: t.fieldDisplayName,
                   border: const OutlineInputBorder()),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? t.validateName : null,
             ),
             const SizedBox(height: Dim.gap),
             TextFormField(
-              controller: _nickname,
+              controller: _realName,
               decoration: InputDecoration(
-                  labelText: t.fieldNickname,
+                  labelText: t.fieldRealName,
                   border: const OutlineInputBorder()),
             ),
             const SizedBox(height: Dim.gap),

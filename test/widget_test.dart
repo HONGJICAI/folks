@@ -27,10 +27,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // 家族树里应能看到狗蛋
-    expect(find.text('赵狗蛋(狗蛋)'), findsOneWidget);
+    expect(find.text('狗蛋'), findsOneWidget);
 
     // 点进狗蛋详情
-    await tester.tap(find.text('赵狗蛋(狗蛋)'));
+    await tester.tap(find.text('狗蛋'));
     await tester.pumpAndSettle();
 
     // 删除 → 确认
@@ -40,6 +40,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // 回到家族树，狗蛋应已消失
-    expect(find.text('赵狗蛋(狗蛋)'), findsNothing);
+    expect(find.text('狗蛋'), findsNothing);
   });
 }

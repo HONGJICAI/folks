@@ -48,9 +48,15 @@ class _FamilyTabState extends State<FamilyTab> {
     });
   }
 
+  /// 树视图：对调后整树重绘（树是一个整体布局）。
   Future<void> _promote(int personId) async {
-    await _repo.setBloodPrimary(personId); // 把副位提升为血亲主位
+    await _repo.setBloodPrimary(personId);
     _reload();
+  }
+
+  /// 列表视图：仅持久化，由行自己乐观就地翻转，不触发整页刷新。
+  Future<void> _promoteSilent(int personId) async {
+    await _repo.setBloodPrimary(personId);
   }
 
   Future<void> _addMember() async {
@@ -107,7 +113,7 @@ class _FamilyTabState extends State<FamilyTab> {
               : FamilyListView(
                   people: people,
                   onOpen: _openPerson,
-                  onSwap: _promote,
+                  onSwap: _promoteSilent,
                 );
         },
       ),

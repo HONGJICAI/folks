@@ -342,7 +342,8 @@ class FakeRepository implements FolksRepository {
     if (spouseId != null && _persons[spouseId] != null) {
       _persons[spouseId] = _persons[spouseId]!.copyWith(marriedIn: true);
     }
-    _bus.ping();
+    // 不发全局通知：主副对调只是局部展示重排，刷新方式交给调用方
+    // （列表行乐观就地更新；树视图自己显式 reload）。
   }
 
   @override

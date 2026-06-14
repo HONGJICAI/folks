@@ -7,8 +7,9 @@ import '../models/person.dart';
 import 'avatar.dart';
 
 // 节点与间距尺寸。
-const double _nodeW = 158;
-const double _nodeH = 72;
+const double _nodeW = 150; // 单人节点宽
+const double _coupleW = 250; // 夫妻节点更宽（左右两人并排）
+const double _nodeH = 64;
 const double _hGap = 20;
 const double _vGap = 52;
 
@@ -21,7 +22,8 @@ class _Node {
   double x = 0;
   double y = 0;
 
-  double get centerX => x + _nodeW / 2;
+  double get width => secondary != null ? _coupleW : _nodeW;
+  double get centerX => x + width / 2;
 }
 
 /// 横向家谱图：子树居中布局，父子用折线连接，整体可平移/缩放，首帧自动适配居中。
@@ -55,26 +57,46 @@ class _FamilyTreeChartState extends State<FamilyTreeChart> {
   Widget build(BuildContext context) {
     final roots = _buildForest(widget.people);
 
-    // 布局：叶子从左到右铺开，父节点居中于其子女跨度之上。
-    var cursor = 0.0;
+    // 布局：按子树宽度预留 —— 每个子树占 max(节点自身宽, 子女们总宽)，
+    // 这样宽的夫妻节点压在窄子女上也不会撞到兄弟子树（修复重叠）。
+    final subW = <_Node, double>{};
+    double subtreeWidth(_Node n) => subW.putIfAbsent(n, () {
+          if (n.children.isEmpty) return n.width;
+          var cw = 0.0;
+          for (var i = 0; i < n.children.length; i++) {
+            cw += subtreeWidth(n.children[i]);
+            if (i < n.children.length - 1) cw += _hGap;
+          }
+          return math.max(n.width, cw);
+        });
+
     var maxDepth = 0;
-    void layout(_Node n, int depth) {
+    void place(_Node n, double left, int depth) {
       if (depth > maxDepth) maxDepth = depth;
       n.y = depth * (_nodeH + _vGap);
+      final stw = subtreeWidth(n);
       if (n.children.isEmpty) {
-        n.x = cursor;
-        cursor += _nodeW + _hGap;
-      } else {
-        for (final c in n.children) {
-          layout(c, depth + 1);
-        }
-        n.x = (n.children.first.centerX + n.children.last.centerX) / 2 -
-            _nodeW / 2;
+        n.x = left + (stw - n.width) / 2; // 居中于自己的槽位
+        return;
       }
+      var childrenW = 0.0;
+      for (var i = 0; i < n.children.length; i++) {
+        childrenW += subtreeWidth(n.children[i]);
+        if (i < n.children.length - 1) childrenW += _hGap;
+      }
+      var cx = left + (stw - childrenW) / 2; // 子女块在子树槽内居中
+      for (final c in n.children) {
+        place(c, cx, depth + 1);
+        cx += subtreeWidth(c) + _hGap;
+      }
+      n.x = (n.children.first.centerX + n.children.last.centerX) / 2 -
+          n.width / 2;
     }
 
+    var cursor = 0.0;
     for (final r in roots) {
-      layout(r, 0);
+      place(r, cursor, 0);
+      cursor += subtreeWidth(r) + _hGap;
     }
 
     final all = <_Node>[];
@@ -120,7 +142,7 @@ class _FamilyTreeChartState extends State<FamilyTreeChart> {
                     top: n.y,
                     child: _NodeBox(
                       node: n,
-                      onOpen: () => widget.onOpen(n.primary.id),
+                      onOpenPerson: widget.onOpen,
                       onSwap: n.secondary == null
                           ? null
                           : () => widget.onSwap(n.secondary!.id),
@@ -242,26 +264,22 @@ class _ConnectorPainter extends CustomPainter {
 }
 
 class _NodeBox extends StatelessWidget {
-  const _NodeBox({required this.node, required this.onOpen, this.onSwap});
+  const _NodeBox(
+      {required this.node, required this.onOpenPerson, this.onSwap});
 
   final _Node node;
-  final VoidCallback onOpen;
-  final VoidCallback? onSwap;
+  final void Function(int personId) onOpenPerson; // 点哪个名字进哪个详情
+  final VoidCallback? onSwap; // 长按对调主副
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final p = node.primary;
-    final isSelf = p.isSelf || (node.secondary?.isSelf ?? false);
-    final age = p.ageAt(DateTime.now());
-    final meta = [
-      if (p.customAppellation != null) p.customAppellation!,
-      if (age != null) context.l10n.ageYears(age),
-    ].join(' · ');
+    final scheme = Theme.of(context).colorScheme;
+    final isSelf =
+        node.primary.isSelf || (node.secondary?.isSelf ?? false);
+    final couple = node.secondary != null;
 
     return SizedBox(
-      width: _nodeW,
+      width: node.width,
       height: _nodeH,
       child: Material(
         color: isSelf ? scheme.primaryContainer : scheme.surface,
@@ -273,51 +291,68 @@ class _NodeBox extends StatelessWidget {
           ),
         ),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onOpen,
-          onLongPress: onSwap, // 长按对调主副
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Row(
-              children: [
-                Avatar(name: p.realName, photoPath: p.photoPath, radius: 14),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(p.displayName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600)),
-                      if (node.secondary != null)
-                        Row(
-                          children: [
-                            Icon(Icons.favorite, size: 10, color: scheme.primary),
-                            const SizedBox(width: 2),
-                            Expanded(
-                              child: Text(node.secondary!.displayName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodySmall
-                                      ?.copyWith(color: scheme.onSurfaceVariant)),
-                            ),
-                          ],
-                        ),
-                      if (meta.isNotEmpty)
-                        Text(meta,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall
-                                ?.copyWith(color: scheme.onSurfaceVariant)),
-                    ],
-                  ),
-                ),
-              ],
+        child: couple
+            ? Row(
+                children: [
+                  Expanded(
+                      child: _cell(context, node.primary, spouse: false)),
+                  Icon(Icons.favorite, size: 13, color: scheme.primary),
+                  Expanded(
+                      child: _cell(context, node.secondary!, spouse: true)),
+                ],
+              )
+            : _cell(context, node.primary, spouse: false, single: true),
+      ),
+    );
+  }
+
+  /// 一个可点的人格（点进详情、长按对调）。夫妻左右各一格，单人独占整格并显示称呼/年龄。
+  Widget _cell(BuildContext context, Person p,
+      {required bool spouse, bool single = false}) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final age = p.ageAt(DateTime.now());
+    final meta = single
+        ? [
+            if (p.customAppellation != null) p.customAppellation!,
+            if (age != null) context.l10n.ageYears(age),
+          ].join(' · ')
+        : '';
+
+    return InkWell(
+      onTap: () => onOpenPerson(p.id),
+      onLongPress: onSwap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          children: [
+            Avatar(
+                name: p.realName,
+                photoPath: p.photoPath,
+                radius: single ? 14 : 12),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(p.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight:
+                              spouse ? FontWeight.w400 : FontWeight.w600,
+                          color: spouse ? scheme.onSurfaceVariant : null)),
+                  if (meta.isNotEmpty)
+                    Text(meta,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant)),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

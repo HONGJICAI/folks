@@ -18,7 +18,8 @@ class PersonFormPage extends StatefulWidget {
       this.group,
       this.existing,
       this.parentOf,
-      this.parentIsFather})
+      this.parentIsFather,
+      this.showRelations = true})
       : assert(group != null || existing != null || parentOf != null,
             '需 group / existing / parentOf 之一');
 
@@ -30,6 +31,9 @@ class PersonFormPage extends StatefulWidget {
 
   /// 家长是父(true)还是母(false)。省略则按家长性别推断（女=母，否则父）。
   final bool? parentIsFather;
+
+  /// 是否显示关系下拉。从"添加关系→新建"进来时关掉，避免在新建页里再设关系（套娃）。
+  final bool showRelations;
 
   PersonGroup get effectiveGroup =>
       existing?.group ?? parentOf?.group ?? group ?? PersonGroup.family;
@@ -334,26 +338,26 @@ class _PersonFormPageState extends State<PersonFormPage> {
       tags: _isFamily ? const [] : tags,
     );
 
-    final int id;
+    final Person saved;
     if (widget.isEditing) {
       await _repo.updatePerson(person);
-      id = person.id;
+      saved = person;
     } else {
-      id = (await _repo.addPerson(person)).id;
+      saved = await _repo.addPerson(person);
     }
     // 配偶有变更时才动它：设置（双向 + 解除旧配偶）或清空。
     if (_isFamily && _spouseId != oldSpouse) {
       if (_spouseId == null) {
-        await _repo.clearSpouse(id);
+        await _repo.clearSpouse(saved.id);
       } else {
-        await _repo.setSpouse(id, _spouseId!);
+        await _repo.setSpouse(saved.id, _spouseId!);
       }
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.toastSaved)),
       );
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(saved); // 返回创建/更新后的 Person
     }
   }
 
@@ -463,7 +467,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
                   labelText: t.fieldEmail, border: const OutlineInputBorder()),
             ),
             const SizedBox(height: Dim.gap),
-            if (_isFamily) ...[
+            // 关系下拉：仅常规家族录入显示；从"添加关系→新建"进来时隐藏，避免套娃。
+            if (_isFamily && widget.showRelations) ...[
               _RelationPicker(
                 label: t.relationFather,
                 members: _familyMembers,
@@ -485,7 +490,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 onChanged: (v) => setState(() => _spouseId = v),
               ),
               const SizedBox(height: Dim.gap),
-            ] else ...[
+            ],
+            if (!_isFamily) ...[
               TextFormField(
                 controller: _tags,
                 decoration: InputDecoration(

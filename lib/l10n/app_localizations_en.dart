@@ -163,6 +163,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addChild => 'Add child';
 
   @override
+  String get addFather => 'Add father';
+
+  @override
+  String get addMother => 'Add mother';
+
+  @override
+  String get addSpouse => 'Add spouse';
+
+  @override
+  String get removeLink => 'Remove';
+
+  @override
   String get chooseParentRole => 'Is this parent the father or mother?';
 
   @override

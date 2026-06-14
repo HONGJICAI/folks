@@ -60,11 +60,11 @@ class _FamilyTabState extends State<FamilyTab> {
   }
 
   Future<void> _addMember() async {
-    final added = await Navigator.of(context).push<bool>(
+    final added = await Navigator.of(context).push<Person>(
       MaterialPageRoute(
           builder: (_) => const PersonFormPage(group: PersonGroup.family)),
     );
-    if (added == true) _reload();
+    if (added != null) _reload();
   }
 
   /// 打开详情页，返回后刷新（详情里可能编辑/删除/调换关系）。

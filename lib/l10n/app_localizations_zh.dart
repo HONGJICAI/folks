@@ -160,6 +160,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get addChild => '添加子女';
 
   @override
+  String get addFather => '添加父亲';
+
+  @override
+  String get addMother => '添加母亲';
+
+  @override
+  String get addSpouse => '添加配偶';
+
+  @override
+  String get removeLink => '解除';
+
+  @override
   String get chooseParentRole => '这位家长是孩子的父亲还是母亲？';
 
   @override

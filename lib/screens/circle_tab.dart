@@ -45,11 +45,11 @@ class _CircleTabState extends State<CircleTab> {
   }
 
   Future<void> _addFriend() async {
-    final added = await Navigator.of(context).push<bool>(
+    final added = await Navigator.of(context).push<Person>(
       MaterialPageRoute(
           builder: (_) => const PersonFormPage(group: PersonGroup.circle)),
     );
-    if (added == true) _reload();
+    if (added != null) _reload();
   }
 
   /// 打开详情页，返回后刷新（详情页里可能编辑过资料）。

@@ -392,6 +392,30 @@ abstract class AppLocalizations {
   /// **'Add child'**
   String get addChild;
 
+  /// No description provided for @addFather.
+  ///
+  /// In en, this message translates to:
+  /// **'Add father'**
+  String get addFather;
+
+  /// No description provided for @addMother.
+  ///
+  /// In en, this message translates to:
+  /// **'Add mother'**
+  String get addMother;
+
+  /// No description provided for @addSpouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Add spouse'**
+  String get addSpouse;
+
+  /// No description provided for @removeLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeLink;
+
   /// No description provided for @chooseParentRole.
   ///
   /// In en, this message translates to:

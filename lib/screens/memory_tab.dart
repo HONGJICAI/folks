@@ -9,6 +9,7 @@ import '../l10n/l10n.dart';
 import '../widgets/empty_hint.dart';
 import '../widgets/event_card.dart';
 import '../widgets/language_toggle.dart';
+import '../widgets/search_button.dart';
 import 'event_detail.dart';
 import 'event_form.dart';
 
@@ -97,7 +98,7 @@ class _MemoryTabState extends State<MemoryTab> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.tabMemory),
-        actions: const [LanguageToggle()],
+        actions: const [SearchButton(), LanguageToggle()],
       ),
       body: FutureBuilder<(List<Event>, Map<int, Person>)>(
         future: _future,

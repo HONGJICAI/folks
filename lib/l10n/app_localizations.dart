@@ -122,6 +122,18 @@ abstract class AppLocalizations {
   /// **'Memories'**
   String get tabMemory;
 
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get searchHint;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching people'**
+  String get searchNoResults;
+
   /// No description provided for @actionSave.
   ///
   /// In en, this message translates to:

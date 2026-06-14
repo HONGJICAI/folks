@@ -7,6 +7,9 @@
   "tabCircle": "Circle",
   "tabMemory": "Memories",
 
+  "searchHint": "Search people",
+  "searchNoResults": "No matching people",
+
   "actionSave": "Save",
   "actionCancel": "Cancel",
   "actionDelete": "Delete",

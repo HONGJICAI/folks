@@ -21,6 +21,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabMemory => 'Memories';
 
   @override
+  String get searchHint => 'Search people';
+
+  @override
+  String get searchNoResults => 'No matching people';
+
+  @override
   String get actionSave => 'Save';
 
   @override

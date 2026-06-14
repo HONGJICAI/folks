@@ -7,6 +7,9 @@
   "tabCircle": "圈子",
   "tabMemory": "回忆",
 
+  "searchHint": "搜索身边人",
+  "searchNoResults": "没有匹配的人",
+
   "actionSave": "保存",
   "actionCancel": "取消",
   "actionDelete": "删除",

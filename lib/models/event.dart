@@ -34,6 +34,9 @@ class Event {
   /// 本地照片副本的路径（已复制进 App 私有目录，而非相册 URI 引用）。
   final List<String> photoPaths;
 
+  /// 自定义标签（场合/主题），如 ['春节', '旅行']。跨年份串联同类回忆，可搜索。
+  final List<String> tags;
+
   // --- 仅 type == material 时有意义 ---
   final MoneyDirection? direction;
   final double? amount;
@@ -46,6 +49,7 @@ class Event {
     required this.occurDate,
     this.boundPersonIds = const [],
     this.photoPaths = const [],
+    this.tags = const [],
     this.direction,
     this.amount,
   });
@@ -66,6 +70,7 @@ class Event {
     DateTime? occurDate,
     List<int>? boundPersonIds,
     List<String>? photoPaths,
+    List<String>? tags,
     MoneyDirection? direction,
     double? amount,
   }) {
@@ -77,6 +82,7 @@ class Event {
       occurDate: occurDate ?? this.occurDate,
       boundPersonIds: boundPersonIds ?? this.boundPersonIds,
       photoPaths: photoPaths ?? this.photoPaths,
+      tags: tags ?? this.tags,
       direction: direction ?? this.direction,
       amount: amount ?? this.amount,
     );
@@ -90,6 +96,7 @@ class Event {
         'occur_date': occurDate.toIso8601String(),
         'bound_person_ids': boundPersonIds.join(','),
         'photo_paths': photoPaths.join(';'),
+        'tags': tags.join(';'),
         'direction': direction?.name,
         'amount': amount,
       };
@@ -106,6 +113,10 @@ class Event {
             .map(int.parse)
             .toList(),
         photoPaths: ((m['photo_paths'] as String?) ?? '')
+            .split(';')
+            .where((s) => s.isNotEmpty)
+            .toList(),
+        tags: ((m['tags'] as String?) ?? '')
             .split(';')
             .where((s) => s.isNotEmpty)
             .toList(),

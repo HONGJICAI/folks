@@ -21,10 +21,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabMemory => 'Memories';
 
   @override
-  String get searchHint => 'Search people';
+  String get searchHint => 'Search people & memories';
 
   @override
-  String get searchNoResults => 'No matching people';
+  String get searchNoResults => 'No matches';
+
+  @override
+  String get searchSectionPeople => 'People';
+
+  @override
+  String get eventTagsHint => 'Spring Festival  Trip';
 
   @override
   String get actionSave => 'Save';

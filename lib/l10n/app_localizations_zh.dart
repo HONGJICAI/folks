@@ -21,10 +21,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tabMemory => '回忆';
 
   @override
-  String get searchHint => '搜索身边人';
+  String get searchHint => '搜索身边人与回忆';
 
   @override
-  String get searchNoResults => '没有匹配的人';
+  String get searchNoResults => '没有匹配项';
+
+  @override
+  String get searchSectionPeople => '人物';
+
+  @override
+  String get eventTagsHint => '春节 旅行';
 
   @override
   String get actionSave => '保存';

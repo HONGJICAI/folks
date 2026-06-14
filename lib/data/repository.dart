@@ -70,6 +70,9 @@ abstract class FolksRepository {
   Future<List<Event>> getAllEvents();
   Future<Event?> getEvent(int id);
 
+  /// 按标题 / 手记 / 标签模糊搜索事件（空 query 返回全部）。
+  Future<List<Event>> searchEvents(String query);
+
   /// 取绑定了某人的所有事件（按发生日期倒序）—— 个人时光轴。
   Future<List<Event>> getEventsByPerson(int personId);
 

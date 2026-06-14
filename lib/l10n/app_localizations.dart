@@ -125,14 +125,26 @@ abstract class AppLocalizations {
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search people'**
+  /// **'Search people & memories'**
   String get searchHint;
 
   /// No description provided for @searchNoResults.
   ///
   /// In en, this message translates to:
-  /// **'No matching people'**
+  /// **'No matches'**
   String get searchNoResults;
+
+  /// No description provided for @searchSectionPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get searchSectionPeople;
+
+  /// No description provided for @eventTagsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Spring Festival  Trip'**
+  String get eventTagsHint;
 
   /// No description provided for @actionSave.
   ///

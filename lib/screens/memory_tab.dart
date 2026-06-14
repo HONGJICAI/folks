@@ -25,6 +25,7 @@ class _MemoryTabState extends State<MemoryTab> {
   late final FolksRepository _repo;
   late Future<(List<Event>, Map<int, Person>)> _future;
   bool _orphanOnly = false; // 仅看无关联回忆
+  String? _tagFilter; // 仅看某标签（与 _orphanOnly 互斥）
 
   @override
   void initState() {
@@ -93,6 +94,49 @@ class _MemoryTabState extends State<MemoryTab> {
     return children;
   }
 
+  /// 单选筛选条（横向滚动）：全部 / 无关联(N) / 各标签。
+  Widget _filterBar(BuildContext context, int orphanCount, List<String> tags) {
+    return SizedBox(
+      height: 48,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: Dim.pad),
+        children: [
+          ChoiceChip(
+            label: Text(context.l10n.filterAll),
+            selected: !_orphanOnly && _tagFilter == null,
+            onSelected: (_) => setState(() {
+              _orphanOnly = false;
+              _tagFilter = null;
+            }),
+          ),
+          if (orphanCount > 0) ...[
+            const SizedBox(width: 8),
+            ChoiceChip(
+              label: Text(context.l10n.filterUnlinked(orphanCount)),
+              selected: _orphanOnly,
+              onSelected: (_) => setState(() {
+                _orphanOnly = true;
+                _tagFilter = null;
+              }),
+            ),
+          ],
+          for (final tag in tags) ...[
+            const SizedBox(width: 8),
+            ChoiceChip(
+              label: Text('#$tag'),
+              selected: _tagFilter == tag,
+              onSelected: (_) => setState(() {
+                _tagFilter = tag;
+                _orphanOnly = false;
+              }),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,31 +159,20 @@ class _MemoryTabState extends State<MemoryTab> {
           }
           final orphanCount =
               events.where((e) => e.boundPersonIds.isEmpty).length;
+          final tags = <String>{for (final e in events) ...e.tags}.toList()
+            ..sort();
+
+          // 单选筛选：游离 / 某标签 / 全部。
           final shown = _orphanOnly
               ? events.where((e) => e.boundPersonIds.isEmpty).toList()
-              : events;
+              : _tagFilter != null
+                  ? events.where((e) => e.tags.contains(_tagFilter)).toList()
+                  : events;
+
+          final showBar = orphanCount > 0 || tags.isNotEmpty;
           return Column(
             children: [
-              // 仅在存在游离回忆时显示筛选，避免无谓干扰。
-              if (orphanCount > 0)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(Dim.pad, Dim.pad, Dim.pad, 0),
-                  child: Row(
-                    children: [
-                      ChoiceChip(
-                        label: Text(context.l10n.filterAll),
-                        selected: !_orphanOnly,
-                        onSelected: (_) => setState(() => _orphanOnly = false),
-                      ),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        label: Text(context.l10n.filterUnlinked(orphanCount)),
-                        selected: _orphanOnly,
-                        onSelected: (_) => setState(() => _orphanOnly = true),
-                      ),
-                    ],
-                  ),
-                ),
+              if (showBar) _filterBar(context, orphanCount, tags),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(Dim.pad),

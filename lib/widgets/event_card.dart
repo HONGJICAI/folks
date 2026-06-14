@@ -81,6 +81,22 @@ class EventCard extends StatelessWidget {
                         style: theme.textTheme.bodyMedium
                             ?.copyWith(color: scheme.onSurfaceVariant)),
                   ],
+                  if (event.tags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final tag in event.tags)
+                          Chip(
+                            label: Text('#$tag'),
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ),
+                      ],
+                    ),
+                  ],
                   if (event.photoPaths.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     SizedBox(

@@ -130,6 +130,22 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 const SizedBox(height: Dim.gap),
                 _MoneyLine(event: event),
               ],
+              if (event.tags.isNotEmpty) ...[
+                const SizedBox(height: Dim.gap),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final tag in event.tags)
+                      Chip(
+                        label: Text('#$tag'),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                      ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 20),
               // 关联的人
               Text(context.l10n.relatedPeople, style: theme.textTheme.titleMedium),

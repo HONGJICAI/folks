@@ -28,6 +28,7 @@ class _EventFormPageState extends State<EventFormPage> {
   final _title = TextEditingController();
   final _amount = TextEditingController();
   final _detail = TextEditingController();
+  final _tags = TextEditingController();
 
   EventType _type = EventType.material;
   MoneyDirection _direction = MoneyDirection.expense;
@@ -53,6 +54,7 @@ class _EventFormPageState extends State<EventFormPage> {
       _occurDate = e.occurDate;
       _selected.addAll(e.boundPersonIds);
       _photos.addAll(e.photoPaths);
+      _tags.text = e.tags.join(' ');
     } else {
       _occurDate = DateTime.now();
     }
@@ -67,6 +69,7 @@ class _EventFormPageState extends State<EventFormPage> {
     _title.dispose();
     _amount.dispose();
     _detail.dispose();
+    _tags.dispose();
     super.dispose();
   }
 
@@ -105,6 +108,10 @@ class _EventFormPageState extends State<EventFormPage> {
       occurDate: _occurDate,
       boundPersonIds: _selected.toList(),
       photoPaths: List.of(_photos),
+      tags: _tags.text
+          .split(RegExp(r'[,，;；\s]+'))
+          .where((e) => e.isNotEmpty)
+          .toList(),
       direction: _isMoney ? _direction : null,
       amount: _isMoney ? double.tryParse(_amount.text.trim()) : null,
     );
@@ -258,6 +265,15 @@ class _EventFormPageState extends State<EventFormPage> {
               decoration: InputDecoration(
                   labelText: t.fieldJournal,
                   border: const OutlineInputBorder()),
+            ),
+            const SizedBox(height: Dim.gap),
+            TextFormField(
+              controller: _tags,
+              decoration: InputDecoration(
+                labelText: t.fieldTags,
+                hintText: t.eventTagsHint,
+                border: const OutlineInputBorder(),
+              ),
             ),
           ],
         ),

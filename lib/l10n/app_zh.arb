@@ -7,8 +7,10 @@
   "tabCircle": "圈子",
   "tabMemory": "回忆",
 
-  "searchHint": "搜索身边人",
-  "searchNoResults": "没有匹配的人",
+  "searchHint": "搜索身边人与回忆",
+  "searchNoResults": "没有匹配项",
+  "searchSectionPeople": "人物",
+  "eventTagsHint": "春节 旅行",
 
   "actionSave": "保存",
   "actionCancel": "取消",

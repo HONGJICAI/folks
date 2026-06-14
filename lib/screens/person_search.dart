@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../data/repository.dart';
 import '../l10n/l10n.dart';
+import '../models/event.dart';
 import '../models/person.dart';
+import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
+import '../widgets/event_card.dart';
+import 'event_detail.dart';
 import 'person_detail.dart';
 
-/// 全局人物搜索：覆盖所有人（家族 + 圈子），按姓名 / 小名 / 标签匹配。
-/// 与"在哪个 Tab、是否打标签"无关 —— 找人就用它。
+/// 全局搜索：覆盖所有人 + 所有回忆（按姓名/小名/标签、标题/手记/标签匹配）。
+/// 结果分「人物 / 回忆」两段。与在哪个 Tab、是否打标签无关。
 class PersonSearchDelegate extends SearchDelegate<void> {
   PersonSearchDelegate(this.repo, {required String hint})
       : super(searchFieldLabel: hint);
@@ -35,33 +39,76 @@ class PersonSearchDelegate extends SearchDelegate<void> {
   @override
   Widget buildSuggestions(BuildContext context) => _results(context);
 
+  Future<(List<Person>, List<Event>, Map<int, Person>)> _load() async {
+    final people = await repo.searchPersons(query);
+    final events = await repo.searchEvents(query);
+    final all = await repo.getAllPersons();
+    return (people, events, {for (final p in all) p.id: p});
+  }
+
   Widget _results(BuildContext context) {
-    return FutureBuilder<List<Person>>(
-      future: repo.searchPersons(query), // 空 query 返回全部
+    final t = context.l10n;
+    return FutureBuilder<(List<Person>, List<Event>, Map<int, Person>)>(
+      future: _load(),
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
-        final list = snap.data ?? const <Person>[];
-        if (list.isEmpty) {
+        final (people, events, byId) = snap.data!;
+        if (people.isEmpty && events.isEmpty) {
           return Center(
-            child: Text(context.l10n.searchNoResults,
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            child: Text(t.searchNoResults,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
           );
         }
-        return ListView.separated(
-          itemCount: list.length,
-          separatorBuilder: (_, _) => const Divider(height: 1),
-          itemBuilder: (_, i) => _ResultTile(person: list[i]),
+        return ListView(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          children: [
+            if (people.isNotEmpty) ...[
+              _SectionHeader(t.searchSectionPeople),
+              for (final p in people) _PersonTile(person: p),
+            ],
+            if (events.isNotEmpty) ...[
+              _SectionHeader(t.tabMemory),
+              for (final e in events)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(Dim.pad, 4, Dim.pad, 4),
+                  child: EventCard(
+                    event: e,
+                    byId: byId,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => EventDetailPage(eventId: e.id)),
+                    ),
+                  ),
+                ),
+            ],
+          ],
         );
       },
     );
   }
 }
 
-class _ResultTile extends StatelessWidget {
-  const _ResultTile({required this.person});
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(this.title);
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Dim.pad, 12, Dim.pad, 6),
+      child: Text(title,
+          style: TextStyle(
+              color: scheme.primary, fontWeight: FontWeight.w600, fontSize: 13)),
+    );
+  }
+}
+
+class _PersonTile extends StatelessWidget {
+  const _PersonTile({required this.person});
   final Person person;
 
   @override

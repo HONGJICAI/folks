@@ -7,8 +7,10 @@
   "tabCircle": "Circle",
   "tabMemory": "Memories",
 
-  "searchHint": "Search people",
-  "searchNoResults": "No matching people",
+  "searchHint": "Search people & memories",
+  "searchNoResults": "No matches",
+  "searchSectionPeople": "People",
+  "eventTagsHint": "Spring Festival  Trip",
 
   "actionSave": "Save",
   "actionCancel": "Cancel",

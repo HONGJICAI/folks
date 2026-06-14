@@ -78,6 +78,9 @@
   "fieldPhone": "Phone",
   "fieldEmail": "Email",
   "fieldBirthday": "Birthday",
+  "labelYear": "Year",
+  "labelMonth": "Month",
+  "labelDay": "Day",
   "valueNotSet": "Not set",
   "fieldTags": "Tags (space or comma separated)",
   "fieldTagsHint": "college roommate  cycling buddy",
@@ -117,5 +120,32 @@
 
   "cantOpenImage": "Can't open this image",
   "pageIndicator": "{index} / {total}",
-  "@pageIndicator": { "placeholders": { "index": { "type": "int" }, "total": { "type": "int" } } }
+  "@pageIndicator": { "placeholders": { "index": { "type": "int" }, "total": { "type": "int" } } },
+
+  "dateToday": "Today",
+  "dateYesterday": "Yesterday",
+  "daysAgo": "{n}d ago",
+  "@daysAgo": { "placeholders": { "n": { "type": "int" } } },
+  "monthsAgo": "{n}mo ago",
+  "@monthsAgo": { "placeholders": { "n": { "type": "int" } } },
+  "yearsAgo": "{n}y ago",
+  "@yearsAgo": { "placeholders": { "n": { "type": "int" } } },
+
+  "sectionReminders": "Upcoming",
+  "labelBirthday": "Birthday",
+  "anniversaryYears": "{n} yr",
+  "@anniversaryYears": { "placeholders": { "n": { "type": "int" } } },
+  "remindBirthday": "Remind on birthday",
+  "sectionAnniversaries": "Anniversaries",
+  "addAnniversary": "Add anniversary",
+  "anniversaryLabelHint": "e.g. Wedding anniversary",
+  "sectionUpcomingBirthdays": "Upcoming birthdays",
+  "birthdayToday": "Birthday today!",
+  "birthdayInDays": "in {n} days",
+  "@birthdayInDays": { "placeholders": { "n": { "type": "int" } } },
+  "turnsAge": "turns {age}",
+  "@turnsAge": { "placeholders": { "age": { "type": "int" } } },
+
+  "toastSaved": "Saved",
+  "toastDeleted": "Deleted"
 }

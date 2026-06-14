@@ -131,7 +131,7 @@ class _FamilyRow extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(Dim.pad + depth * 20.0, 12, Dim.pad, 12),
         child: Row(
           children: [
-            Avatar(name: primary.realName),
+            Avatar(name: primary.realName, photoPath: primary.photoPath),
             const SizedBox(width: Dim.gap),
             Expanded(
               child: Column(

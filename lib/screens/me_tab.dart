@@ -7,6 +7,7 @@ import '../locale_controller.dart';
 import '../models/person.dart';
 import '../settings_controller.dart';
 import '../theme/app_theme.dart';
+import '../util/dates.dart';
 import '../widgets/avatar.dart';
 import 'person_detail.dart';
 
@@ -20,13 +21,13 @@ class MeTab extends StatefulWidget {
 
 class _MeTabState extends State<MeTab> {
   late final FolksRepository _repo;
-  late Future<Person?> _self;
+  late Future<List<Person>> _all;
 
   @override
   void initState() {
     super.initState();
     _repo = context.read<FolksRepository>();
-    _self = _loadSelf();
+    _all = _repo.getAllPersons();
     _repo.changes.addListener(_reload);
   }
 
@@ -36,19 +37,43 @@ class _MeTabState extends State<MeTab> {
     super.dispose();
   }
 
-  Future<Person?> _loadSelf() async {
-    final all = await _repo.getAllPersons();
-    for (final p in all) {
-      if (p.isSelf) return p;
-    }
-    return null;
-  }
-
   void _reload() {
     if (!mounted) return;
     setState(() {
-      _self = _loadSelf();
+      _all = _repo.getAllPersons();
     });
+  }
+
+  /// 未来 30 天内的提醒：生日（若开启）+ 各纪念日，按天数升序。
+  List<_Reminder> _upcomingReminders(List<Person> people) {
+    final now = DateTime.now();
+    final list = <_Reminder>[];
+    for (final p in people) {
+      if (p.canRemindBirthday && p.remindBirthday) {
+        final b = p.birthDate!;
+        final d = daysUntilNextBirthday(b, now);
+        if (d <= 30) {
+          list.add(_Reminder(
+              person: p,
+              days: d,
+              isBirthday: true,
+              count: nextBirthdayAge(b, now)));
+        }
+      }
+      for (final a in p.anniversaries) {
+        final d = daysUntilNextBirthday(a.date, now);
+        if (d <= 30) {
+          list.add(_Reminder(
+              person: p,
+              days: d,
+              isBirthday: false,
+              anniLabel: a.label,
+              count: nextBirthdayAge(a.date, now)));
+        }
+      }
+    }
+    list.sort((a, b) => a.days.compareTo(b.days));
+    return list;
   }
 
   @override
@@ -58,9 +83,26 @@ class _MeTabState extends State<MeTab> {
       appBar: AppBar(title: Text(t.tabMe)),
       body: ListView(
         children: [
-          FutureBuilder<Person?>(
-            future: _self,
-            builder: (context, snap) => _SelfCard(person: snap.data),
+          FutureBuilder<List<Person>>(
+            future: _all,
+            builder: (context, snap) {
+              final people = snap.data ?? const <Person>[];
+              Person? self;
+              for (final p in people) {
+                if (p.isSelf) self = p;
+              }
+              final reminders = _upcomingReminders(people);
+              return Column(
+                children: [
+                  _SelfCard(person: self),
+                  if (reminders.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    _SectionLabel(t.sectionReminders),
+                    for (final r in reminders) _ReminderTile(item: r),
+                  ],
+                ],
+              );
+            },
           ),
           const SizedBox(height: 8),
           _SectionLabel(t.settingsSection),
@@ -105,12 +147,64 @@ class _SelfCard extends StatelessWidget {
     return ListTile(
       contentPadding:
           const EdgeInsets.symmetric(horizontal: Dim.pad, vertical: 8),
-      leading: Avatar(name: p.realName, radius: 28),
+      leading: Avatar(name: p.realName, photoPath: p.photoPath, radius: 28),
       title: Text(p.displayName, style: theme.textTheme.titleLarge),
       subtitle: meta.isEmpty ? null : Text(meta),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => PersonDetailPage(personId: p.id)),
+      ),
+    );
+  }
+}
+
+class _Reminder {
+  _Reminder({
+    required this.person,
+    required this.days,
+    required this.isBirthday,
+    required this.count,
+    this.anniLabel,
+  });
+  final Person person;
+  final int days; // 距离还有几天（0 = 今天）
+  final bool isBirthday;
+  final int count; // 生日：将满岁数；纪念日：周年数
+  final String? anniLabel;
+}
+
+class _ReminderTile extends StatelessWidget {
+  const _ReminderTile({required this.item});
+  final _Reminder item;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    final today = item.days == 0;
+    final when = today
+        ? (item.isBirthday ? t.birthdayToday : t.dateToday)
+        : t.birthdayInDays(item.days);
+    final subtitle = item.isBirthday
+        ? '${t.labelBirthday} · ${t.turnsAge(item.count)}'
+        : '${item.anniLabel} · ${t.anniversaryYears(item.count)}';
+    return ListTile(
+      leading: Avatar(
+          name: item.person.realName,
+          photoPath: item.person.photoPath,
+          radius: 18),
+      title: Text(item.person.displayName),
+      subtitle: Text(subtitle),
+      trailing: Text(
+        when,
+        style: TextStyle(
+          color: today ? scheme.primary : scheme.onSurfaceVariant,
+          fontWeight: today ? FontWeight.w700 : FontWeight.normal,
+        ),
+      ),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (_) => PersonDetailPage(personId: item.person.id)),
       ),
     );
   }

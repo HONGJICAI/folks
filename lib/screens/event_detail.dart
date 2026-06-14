@@ -75,7 +75,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
     if (ok == true) {
       await _repo.deleteEvent(e.id);
-      if (mounted) Navigator.of(context).pop(true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.toastDeleted)),
+        );
+        Navigator.of(context).pop(true);
+      }
     }
   }
 

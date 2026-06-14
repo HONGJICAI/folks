@@ -4,6 +4,7 @@ import '../l10n/l10n.dart';
 import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import '../util/dates.dart';
 import 'local_image.dart';
 
 /// 回忆 / 人情往来事件卡片。回忆 Tab 和成员详情页的时光轴共用。
@@ -23,13 +24,11 @@ class EventCard extends StatelessWidget {
       .map((id) => byId[id]?.displayName ?? '#$id')
       .join('、');
 
-  String _date(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final when = relativePast(event.occurDate, DateTime.now(), context.l10n);
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -56,9 +55,7 @@ class EventCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _names.isEmpty
-                        ? _date(event.occurDate)
-                        : '${_date(event.occurDate)} · $_names',
+                    _names.isEmpty ? when : '$when · $_names',
                     style: theme.textTheme.bodySmall,
                   ),
                   if (event.boundPersonIds.isEmpty) ...[

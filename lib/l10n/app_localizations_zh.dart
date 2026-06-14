@@ -209,6 +209,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fieldBirthday => '生日';
 
   @override
+  String get labelYear => '年';
+
+  @override
+  String get labelMonth => '月';
+
+  @override
+  String get labelDay => '日';
+
+  @override
   String get valueNotSet => '未填写';
 
   @override
@@ -309,4 +318,70 @@ class AppLocalizationsZh extends AppLocalizations {
   String pageIndicator(int index, int total) {
     return '$index / $total';
   }
+
+  @override
+  String get dateToday => '今天';
+
+  @override
+  String get dateYesterday => '昨天';
+
+  @override
+  String daysAgo(int n) {
+    return '$n天前';
+  }
+
+  @override
+  String monthsAgo(int n) {
+    return '$n个月前';
+  }
+
+  @override
+  String yearsAgo(int n) {
+    return '$n年前';
+  }
+
+  @override
+  String get sectionReminders => '近期提醒';
+
+  @override
+  String get labelBirthday => '生日';
+
+  @override
+  String anniversaryYears(int n) {
+    return '$n 周年';
+  }
+
+  @override
+  String get remindBirthday => '提醒生日';
+
+  @override
+  String get sectionAnniversaries => '纪念日';
+
+  @override
+  String get addAnniversary => '添加纪念日';
+
+  @override
+  String get anniversaryLabelHint => '如 结婚纪念日';
+
+  @override
+  String get sectionUpcomingBirthdays => '近期生日';
+
+  @override
+  String get birthdayToday => '今天生日！';
+
+  @override
+  String birthdayInDays(int n) {
+    return '还有$n天';
+  }
+
+  @override
+  String turnsAge(int age) {
+    return '将满$age岁';
+  }
+
+  @override
+  String get toastSaved => '已保存';
+
+  @override
+  String get toastDeleted => '已删除';
 }

@@ -253,6 +253,7 @@ class _NodeBox extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final p = node.primary;
+    final isSelf = p.isSelf || (node.secondary?.isSelf ?? false);
     final age = p.ageAt(DateTime.now());
     final meta = [
       if (p.customAppellation != null) p.customAppellation!,
@@ -263,10 +264,13 @@ class _NodeBox extends StatelessWidget {
       width: _nodeW,
       height: _nodeH,
       child: Material(
-        color: scheme.surface,
+        color: isSelf ? scheme.primaryContainer : scheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: scheme.outlineVariant),
+          side: BorderSide(
+            color: isSelf ? scheme.primary : scheme.outlineVariant,
+            width: isSelf ? 2 : 1,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -276,7 +280,7 @@ class _NodeBox extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(
               children: [
-                Avatar(name: p.realName, radius: 14),
+                Avatar(name: p.realName, photoPath: p.photoPath, radius: 14),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(

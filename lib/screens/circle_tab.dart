@@ -78,6 +78,8 @@ class _CircleTabState extends State<CircleTab> {
             return EmptyHint(
               icon: Icons.groups_outlined,
               text: context.l10n.circleEmpty,
+              actionLabel: context.l10n.addFriend,
+              onAction: _addFriend,
             );
           }
           return _GroupedList(people: people, onOpen: _openPerson);
@@ -192,7 +194,7 @@ class _FriendRow extends StatelessWidget {
         padding: const EdgeInsets.all(Dim.pad),
         child: Row(
           children: [
-            Avatar(name: person.realName),
+            Avatar(name: person.realName, photoPath: person.photoPath),
             const SizedBox(width: Dim.gap),
             Expanded(
               child: Column(

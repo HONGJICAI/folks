@@ -49,7 +49,8 @@ class FakeRepository implements FolksRepository {
       realName: '张建国',
       nickname: '老爸',
       gender: Gender.male,
-      birthDate: DateTime(1968, 3, 12),
+      birthDate: DateTime(1968),
+      birthPrecision: BirthPrecision.year, // 只知年份：算年龄、不进生日提醒
       customAppellation: '爸爸',
       group: PersonGroup.family,
       phone: '13800138000', // 与妈妈共用一台老人机：同号可重复，不去重
@@ -66,6 +67,8 @@ class FakeRepository implements FolksRepository {
     _persons[me.id] = me.copyWith(fatherId: dad.id, motherId: mom.id);
     _link(dad.id, mom.id); // 父母互为配偶
 
+    // 结婚纪念日设为"约十天后"（相对当前日期，保证「近期提醒」能演示纪念日）。
+    final wed = DateTime.now().add(const Duration(days: 10));
     final cousin = _put(Person(
       id: _nextPersonId,
       realName: '王丽',
@@ -73,6 +76,10 @@ class FakeRepository implements FolksRepository {
       birthDate: DateTime(1992, 11, 5),
       customAppellation: '大表姐',
       group: PersonGroup.family,
+      photoPath: 'https://picsum.photos/seed/folks-wangli/200/200',
+      anniversaries: [
+        Anniversary(label: '结婚纪念日', date: DateTime(2021, wed.month, wed.day)),
+      ],
     ));
     final cousinHusband = _put(Person(
       id: _nextPersonId,
@@ -107,13 +114,16 @@ class FakeRepository implements FolksRepository {
       group: PersonGroup.circle,
       phone: '13912345678',
       email: 'laochen@example.com',
+      photoPath: 'https://picsum.photos/seed/folks-laochen/200/200',
       tags: ['大学室友', '骑行搭子'],
     ));
+    // 生日设为"约一周后"（相对当前日期，保证「近期生日」区始终有可演示项）。
+    final soon = DateTime.now().add(const Duration(days: 6));
     _put(Person(
       id: _nextPersonId,
       realName: '林婷',
       gender: Gender.female,
-      birthDate: DateTime(1996, 7, 30),
+      birthDate: DateTime(1996, soon.month, soon.day),
       group: PersonGroup.circle,
       tags: ['前公司同事'],
     ));
@@ -231,6 +241,7 @@ class FakeRepository implements FolksRepository {
 
   @override
   Future<void> deletePerson(int id) async {
+    if (_persons[id]?.isSelf ?? false) return; // "我"是固定成员，不可删除
     _persons.remove(id);
     // 清理引用：子女的父母指向、配偶指向。
     for (final p in _persons.values.toList()) {

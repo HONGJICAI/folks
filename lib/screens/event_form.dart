@@ -120,7 +120,12 @@ class _EventFormPageState extends State<EventFormPage> {
     } else {
       await _repo.addEvent(draft);
     }
-    if (mounted) Navigator.of(context).pop(true);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.toastSaved)),
+      );
+      Navigator.of(context).pop(true);
+    }
   }
 
   @override

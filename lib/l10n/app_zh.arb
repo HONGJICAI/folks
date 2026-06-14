@@ -74,6 +74,9 @@
   "fieldPhone": "电话",
   "fieldEmail": "邮箱",
   "fieldBirthday": "生日",
+  "labelYear": "年",
+  "labelMonth": "月",
+  "labelDay": "日",
   "valueNotSet": "未填写",
   "fieldTags": "标签（空格或逗号分隔）",
   "fieldTagsHint": "大学室友 骑行搭子",
@@ -110,5 +113,26 @@
   "typeMilestone": "重要里程碑",
 
   "cantOpenImage": "无法打开该图片",
-  "pageIndicator": "{index} / {total}"
+  "pageIndicator": "{index} / {total}",
+
+  "dateToday": "今天",
+  "dateYesterday": "昨天",
+  "daysAgo": "{n}天前",
+  "monthsAgo": "{n}个月前",
+  "yearsAgo": "{n}年前",
+
+  "sectionReminders": "近期提醒",
+  "labelBirthday": "生日",
+  "anniversaryYears": "{n} 周年",
+  "remindBirthday": "提醒生日",
+  "sectionAnniversaries": "纪念日",
+  "addAnniversary": "添加纪念日",
+  "anniversaryLabelHint": "如 结婚纪念日",
+  "sectionUpcomingBirthdays": "近期生日",
+  "birthdayToday": "今天生日！",
+  "birthdayInDays": "还有{n}天",
+  "turnsAge": "将满{age}岁",
+
+  "toastSaved": "已保存",
+  "toastDeleted": "已删除"
 }

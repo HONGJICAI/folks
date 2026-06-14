@@ -482,6 +482,24 @@ abstract class AppLocalizations {
   /// **'Birthday'**
   String get fieldBirthday;
 
+  /// No description provided for @labelYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get labelYear;
+
+  /// No description provided for @labelMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get labelMonth;
+
+  /// No description provided for @labelDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get labelDay;
+
   /// No description provided for @valueNotSet.
   ///
   /// In en, this message translates to:
@@ -673,6 +691,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{index} / {total}'**
   String pageIndicator(int index, int total);
+
+  /// No description provided for @dateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dateToday;
+
+  /// No description provided for @dateYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get dateYesterday;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}d ago'**
+  String daysAgo(int n);
+
+  /// No description provided for @monthsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}mo ago'**
+  String monthsAgo(int n);
+
+  /// No description provided for @yearsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}y ago'**
+  String yearsAgo(int n);
+
+  /// No description provided for @sectionReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get sectionReminders;
+
+  /// No description provided for @labelBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get labelBirthday;
+
+  /// No description provided for @anniversaryYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} yr'**
+  String anniversaryYears(int n);
+
+  /// No description provided for @remindBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind on birthday'**
+  String get remindBirthday;
+
+  /// No description provided for @sectionAnniversaries.
+  ///
+  /// In en, this message translates to:
+  /// **'Anniversaries'**
+  String get sectionAnniversaries;
+
+  /// No description provided for @addAnniversary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add anniversary'**
+  String get addAnniversary;
+
+  /// No description provided for @anniversaryLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Wedding anniversary'**
+  String get anniversaryLabelHint;
+
+  /// No description provided for @sectionUpcomingBirthdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming birthdays'**
+  String get sectionUpcomingBirthdays;
+
+  /// No description provided for @birthdayToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday today!'**
+  String get birthdayToday;
+
+  /// No description provided for @birthdayInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'in {n} days'**
+  String birthdayInDays(int n);
+
+  /// No description provided for @turnsAge.
+  ///
+  /// In en, this message translates to:
+  /// **'turns {age}'**
+  String turnsAge(int age);
+
+  /// No description provided for @toastSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get toastSaved;
+
+  /// No description provided for @toastDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get toastDeleted;
 }
 
 class _AppLocalizationsDelegate

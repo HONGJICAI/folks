@@ -154,6 +154,8 @@ class _MemoryTabState extends State<MemoryTab> {
             return EmptyHint(
               icon: Icons.favorite_outline,
               text: context.l10n.memoryEmpty,
+              actionLabel: context.l10n.recordEntry,
+              onAction: _addEvent,
             );
           }
           final orphanCount =

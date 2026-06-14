@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../data/repository.dart';
 import '../l10n/l10n.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
+import '../widgets/avatar.dart';
 
 /// 成员表单：新增或编辑。
 /// - 新增：传 [group]（家族 / 圈子）。
@@ -37,13 +39,17 @@ class _PersonFormPageState extends State<PersonFormPage> {
   final _memo = TextEditingController();
 
   Gender _gender = Gender.unknown;
-  DateTime? _birthDate;
+  int? _birthYear;
+  int? _birthMonth;
+  int? _birthDay;
+  bool _remindBirthday = true;
+  List<Anniversary> _anniversaries = [];
+  String? _photoPath;
 
   // 家族关系（可选）
   int? _fatherId;
   int? _motherId;
   int? _spouseId;
-  bool _isSelf = false;
   List<Person> _familyMembers = const [];
 
   bool get _isFamily => widget.effectiveGroup == PersonGroup.family;
@@ -63,11 +69,21 @@ class _PersonFormPageState extends State<PersonFormPage> {
       _tags.text = e.tags.join(' ');
       _memo.text = e.memo ?? '';
       _gender = e.gender;
-      _birthDate = e.birthDate;
+      if (e.birthDate != null) {
+        _birthYear = e.birthDate!.year;
+        if (e.birthPrecision != BirthPrecision.year) {
+          _birthMonth = e.birthDate!.month;
+        }
+        if (e.birthPrecision == BirthPrecision.full) {
+          _birthDay = e.birthDate!.day;
+        }
+      }
+      _remindBirthday = e.remindBirthday;
+      _anniversaries = List.of(e.anniversaries);
+      _photoPath = e.photoPath;
       _fatherId = e.fatherId;
       _motherId = e.motherId;
       _spouseId = e.spouseId;
-      _isSelf = e.isSelf;
     }
 
     if (_isFamily) {
@@ -97,16 +113,150 @@ class _PersonFormPageState extends State<PersonFormPage> {
     super.dispose();
   }
 
-  Future<void> _pickBirthday() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
+  static String _fmtDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> _addAnniversary() async {
+    final labelCtrl = TextEditingController();
+    DateTime? date;
+    final result = await showDialog<Anniversary>(
       context: context,
-      initialDate: _birthDate ?? DateTime(now.year - 30),
-      firstDate: DateTime(1900),
-      lastDate: now,
-      helpText: context.l10n.fieldBirthday,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: Text(ctx.l10n.addAnniversary),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: labelCtrl,
+                decoration:
+                    InputDecoration(hintText: ctx.l10n.anniversaryLabelHint),
+              ),
+              const SizedBox(height: Dim.gap),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.calendar_today, size: 18),
+                label: Text(date == null ? ctx.l10n.fieldOccurDate : _fmtDate(date!)),
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: ctx,
+                    initialDate: date ?? DateTime(2000),
+                    firstDate: DateTime(1900),
+                    lastDate: DateTime(2100),
+                  );
+                  if (picked != null) setLocal(() => date = picked);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(ctx.l10n.actionCancel)),
+            FilledButton(
+              onPressed: () {
+                if (labelCtrl.text.trim().isEmpty || date == null) return;
+                Navigator.pop(ctx,
+                    Anniversary(label: labelCtrl.text.trim(), date: date!));
+              },
+              child: Text(ctx.l10n.actionAdd),
+            ),
+          ],
+        ),
+      ),
     );
-    if (picked != null) setState(() => _birthDate = picked);
+    labelCtrl.dispose();
+    if (result != null) {
+      setState(() => _anniversaries = [..._anniversaries, result]);
+    }
+  }
+
+  Future<void> _pickAvatar() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) setState(() => _photoPath = picked.path);
+  }
+
+  static int _daysIn(int year, int month) => DateTime(year, month + 1, 0).day;
+
+  /// 生日：年(必填) + 月(可选) + 日(可选)。填到哪算到哪，精度自动判定。
+  Widget _buildBirthday(AppLocalizations t) {
+    final nowYear = DateTime.now().year;
+    final maxDay = (_birthYear != null && _birthMonth != null)
+        ? _daysIn(_birthYear!, _birthMonth!)
+        : 31;
+    final dayShown = (_birthDay != null && _birthDay! > maxDay) ? null : _birthDay;
+
+    DropdownMenuItem<int?> none() =>
+        const DropdownMenuItem<int?>(value: null, child: Text('—'));
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 3,
+          child: DropdownButtonFormField<int?>(
+            initialValue: _birthYear,
+            isExpanded: true,
+            decoration: InputDecoration(
+                labelText: t.labelYear, border: const OutlineInputBorder()),
+            items: [
+              none(),
+              for (var y = nowYear; y >= 1900; y--)
+                DropdownMenuItem(value: y, child: Text('$y')),
+            ],
+            onChanged: (v) => setState(() {
+              _birthYear = v;
+              if (v == null) {
+                _birthMonth = null;
+                _birthDay = null;
+              }
+            }),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: DropdownButtonFormField<int?>(
+            initialValue: _birthMonth,
+            isExpanded: true,
+            decoration: InputDecoration(
+                labelText: t.labelMonth, border: const OutlineInputBorder()),
+            items: [
+              none(),
+              for (var m = 1; m <= 12; m++)
+                DropdownMenuItem(value: m, child: Text('$m')),
+            ],
+            onChanged: _birthYear == null
+                ? null
+                : (v) => setState(() {
+                      _birthMonth = v;
+                      if (v == null ||
+                          (_birthDay != null &&
+                              _birthDay! > _daysIn(_birthYear!, v))) {
+                        _birthDay = null;
+                      }
+                    }),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: DropdownButtonFormField<int?>(
+            initialValue: dayShown,
+            isExpanded: true,
+            decoration: InputDecoration(
+                labelText: t.labelDay, border: const OutlineInputBorder()),
+            items: [
+              none(),
+              for (var d = 1; d <= maxDay; d++)
+                DropdownMenuItem(value: d, child: Text('$d')),
+            ],
+            onChanged: _birthMonth == null
+                ? null
+                : (v) => setState(() => _birthDay = v),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _save() async {
@@ -122,6 +272,18 @@ class _PersonFormPageState extends State<PersonFormPage> {
 
     final oldSpouse = widget.existing?.spouseId;
 
+    // 由 年/月/日 推出生日与精度（填到哪算到哪；无年=无生日）。
+    DateTime? bd;
+    var bp = BirthPrecision.full;
+    if (_birthYear != null) {
+      bd = DateTime(_birthYear!, _birthMonth ?? 1, _birthDay ?? 1);
+      bp = _birthDay != null
+          ? BirthPrecision.full
+          : (_birthMonth != null
+              ? BirthPrecision.yearMonth
+              : BirthPrecision.year);
+    }
+
     // 直接用构造器（而非 copyWith），以便把清空的关系字段真正置回 null。
     // 配偶字段先沿用旧值，改动统一交给 setSpouse/clearSpouse 双向处理（见下）。
     final person = Person(
@@ -129,7 +291,10 @@ class _PersonFormPageState extends State<PersonFormPage> {
       realName: _name.text.trim(),
       nickname: nn(_nickname),
       gender: _gender,
-      birthDate: _birthDate,
+      birthDate: bd,
+      birthPrecision: bp,
+      remindBirthday: _remindBirthday,
+      anniversaries: _anniversaries,
       customAppellation: nn(_appellation),
       memo: nn(_memo),
       group: widget.effectiveGroup,
@@ -137,7 +302,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
       motherId: _isFamily ? _motherId : null,
       spouseId: _isFamily ? oldSpouse : null,
       marriedIn: widget.existing?.marriedIn ?? false,
-      isSelf: _isFamily && _isSelf,
+      isSelf: widget.existing?.isSelf ?? false, // "我"固定，新增的人都不是
+      photoPath: _photoPath,
       phone: nn(_phone),
       email: nn(_email),
       tags: _isFamily ? const [] : tags,
@@ -158,19 +324,17 @@ class _PersonFormPageState extends State<PersonFormPage> {
         await _repo.setSpouse(id, _spouseId!);
       }
     }
-    // 标记"我自己"（全局唯一，清掉其他人的标记）。
-    if (_isFamily && _isSelf) {
-      await _repo.setSelf(id);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.toastSaved)),
+      );
+      Navigator.of(context).pop(true);
     }
-    if (mounted) Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.l10n;
-    final birthdayText = _birthDate == null
-        ? t.valueNotSet
-        : '${_birthDate!.year}-${_birthDate!.month.toString().padLeft(2, '0')}-${_birthDate!.day.toString().padLeft(2, '0')}';
 
     return Scaffold(
       appBar: AppBar(
@@ -186,6 +350,31 @@ class _PersonFormPageState extends State<PersonFormPage> {
         child: ListView(
           padding: const EdgeInsets.all(Dim.pad),
           children: [
+            Center(
+              child: GestureDetector(
+                onTap: _pickAvatar,
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Avatar(
+                      name: _name.text.isEmpty ? '?' : _name.text,
+                      photoPath: _photoPath,
+                      radius: 44,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.camera_alt,
+                          size: 16, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: Dim.pad),
             TextFormField(
               controller: _name,
               decoration: InputDecoration(
@@ -214,17 +403,17 @@ class _PersonFormPageState extends State<PersonFormPage> {
               onSelectionChanged: (s) => setState(() => _gender = s.first),
             ),
             const SizedBox(height: Dim.gap),
-            ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-                side: BorderSide(color: Theme.of(context).colorScheme.outline),
+            _buildBirthday(t),
+            if (_birthYear != null &&
+                _birthMonth != null &&
+                _birthDay != null)
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: const Icon(Icons.notifications_outlined),
+                title: Text(t.remindBirthday),
+                value: _remindBirthday,
+                onChanged: (v) => setState(() => _remindBirthday = v),
               ),
-              leading: const Icon(Icons.cake_outlined),
-              title: Text(t.fieldBirthday),
-              subtitle: Text(birthdayText),
-              trailing: const Icon(Icons.calendar_today, size: 18),
-              onTap: _pickBirthday,
-            ),
             const SizedBox(height: Dim.gap),
             TextFormField(
               controller: _appellation,
@@ -269,14 +458,6 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 onChanged: (v) => setState(() => _spouseId = v),
               ),
               const SizedBox(height: Dim.gap),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                secondary: const Icon(Icons.person_pin_circle_outlined),
-                title: Text(t.markAsSelf),
-                value: _isSelf,
-                onChanged: (v) => setState(() => _isSelf = v),
-              ),
-              const SizedBox(height: Dim.gap),
             ] else ...[
               TextFormField(
                 controller: _tags,
@@ -288,6 +469,32 @@ class _PersonFormPageState extends State<PersonFormPage> {
               ),
               const SizedBox(height: Dim.gap),
             ],
+            Row(
+              children: [
+                Text(t.sectionAnniversaries,
+                    style: Theme.of(context).textTheme.titleMedium),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: _addAnniversary,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(t.addAnniversary),
+                ),
+              ],
+            ),
+            for (var i = 0; i < _anniversaries.length; i++)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                leading: const Icon(Icons.event_outlined, size: 18),
+                title: Text(_anniversaries[i].label),
+                subtitle: Text(_fmtDate(_anniversaries[i].date)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close, size: 18),
+                  onPressed: () => setState(
+                      () => _anniversaries = [..._anniversaries]..removeAt(i)),
+                ),
+              ),
+            const SizedBox(height: Dim.gap),
             TextFormField(
               controller: _memo,
               maxLines: 3,

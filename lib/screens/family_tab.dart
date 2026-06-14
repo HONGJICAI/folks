@@ -94,6 +94,8 @@ class _FamilyTabState extends State<FamilyTab> {
             return EmptyHint(
               icon: Icons.account_tree_outlined,
               text: context.l10n.familyEmpty,
+              actionLabel: context.l10n.addFamilyMember,
+              onAction: _addMember,
             );
           }
           return _treeView

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/repository.dart';
 import '../models/balance.dart';
@@ -86,7 +87,12 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     );
     if (ok == true) {
       await _repo.deletePerson(p.id);
-      if (mounted) Navigator.of(context).pop(true); // 返回列表（调用方会刷新）
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.toastDeleted)),
+        );
+        Navigator.of(context).pop(true);
+      }
     }
   }
 
@@ -105,34 +111,45 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: context.l10n.actionEdit,
-            onPressed: _editPerson,
+    return FutureBuilder<_DetailData>(
+      future: _future,
+      builder: (context, snap) {
+        final person = snap.data?.person;
+        _loaded = person;
+        return Scaffold(
+          appBar: AppBar(
+            actions: [
+              if (person != null)
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: context.l10n.actionEdit,
+                  onPressed: _editPerson,
+                ),
+              // "我"是固定成员，不提供删除。
+              if (person != null && !person.isSelf)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: context.l10n.actionDelete,
+                  onPressed: _deletePerson,
+                ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: context.l10n.actionDelete,
-            onPressed: _deletePerson,
-          ),
-        ],
-      ),
-      body: FutureBuilder<_DetailData>(
-        future: _future,
-        builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final data = snap.data!;
-          final person = data.person;
-          _loaded = person;
-          if (person == null) {
-            return Center(child: Text(context.l10n.personGone));
-          }
-          return ListView(
+          body: _body(context, snap),
+        );
+      },
+    );
+  }
+
+  Widget _body(BuildContext context, AsyncSnapshot<_DetailData> snap) {
+    if (snap.connectionState != ConnectionState.done) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final data = snap.data!;
+    final person = data.person;
+    if (person == null) {
+      return Center(child: Text(context.l10n.personGone));
+    }
+    return ListView(
             padding: const EdgeInsets.all(Dim.pad),
             children: [
               _Header(person: person),
@@ -166,9 +183,6 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                   const SizedBox(height: Dim.gap),
                 ],
             ],
-          );
-        },
-      ),
     );
   }
 
@@ -196,7 +210,7 @@ class _Header extends StatelessWidget {
 
     return Row(
       children: [
-        Avatar(name: person.realName, radius: 32),
+        Avatar(name: person.realName, photoPath: person.photoPath, radius: 32),
         const SizedBox(width: Dim.pad),
         Expanded(
           child: Column(
@@ -279,6 +293,8 @@ class _ContactInfo extends StatelessWidget {
         dense: true,
         leading: const Icon(Icons.phone_outlined, size: 18),
         title: Text(person.phone!),
+        trailing: const Icon(Icons.call, size: 16),
+        onTap: () => _launch(context, 'tel:${person.phone}'),
       ));
     }
     if (person.email != null) {
@@ -286,6 +302,8 @@ class _ContactInfo extends StatelessWidget {
         dense: true,
         leading: const Icon(Icons.email_outlined, size: 18),
         title: Text(person.email!),
+        trailing: const Icon(Icons.mail_outline, size: 16),
+        onTap: () => _launch(context, 'mailto:${person.email}'),
       ));
     }
     if (rows.isEmpty) return const SizedBox.shrink();
@@ -293,6 +311,11 @@ class _ContactInfo extends StatelessWidget {
       padding: const EdgeInsets.only(top: Dim.gap),
       child: Card(clipBehavior: Clip.antiAlias, child: Column(children: rows)),
     );
+  }
+
+  Future<void> _launch(BuildContext context, String uri) async {
+    final parsed = Uri.tryParse(uri);
+    if (parsed != null) await launchUrl(parsed); // 失败静默（无可用拨号/邮件应用）
   }
 }
 

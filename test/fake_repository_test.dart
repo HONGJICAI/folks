@@ -87,6 +87,14 @@ void main() {
       expect((await repo.getPerson(b.id))!.isSelf, isTrue);
     });
 
+    test('"我"（isSelf）不可删除', () async {
+      final repo = FakeRepository();
+      final me = await repo.addPerson(const Person(id: 0, realName: '我'));
+      await repo.setSelf(me.id);
+      await repo.deletePerson(me.id);
+      expect(await repo.getPerson(me.id), isNotNull); // 仍在
+    });
+
     test('任意变更会触发 changes 通知', () async {
       final repo = FakeRepository();
       var fired = 0;

@@ -212,6 +212,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldBirthday => 'Birthday';
 
   @override
+  String get labelYear => 'Year';
+
+  @override
+  String get labelMonth => 'Month';
+
+  @override
+  String get labelDay => 'Day';
+
+  @override
   String get valueNotSet => 'Not set';
 
   @override
@@ -313,4 +322,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String pageIndicator(int index, int total) {
     return '$index / $total';
   }
+
+  @override
+  String get dateToday => 'Today';
+
+  @override
+  String get dateYesterday => 'Yesterday';
+
+  @override
+  String daysAgo(int n) {
+    return '${n}d ago';
+  }
+
+  @override
+  String monthsAgo(int n) {
+    return '${n}mo ago';
+  }
+
+  @override
+  String yearsAgo(int n) {
+    return '${n}y ago';
+  }
+
+  @override
+  String get sectionReminders => 'Upcoming';
+
+  @override
+  String get labelBirthday => 'Birthday';
+
+  @override
+  String anniversaryYears(int n) {
+    return '$n yr';
+  }
+
+  @override
+  String get remindBirthday => 'Remind on birthday';
+
+  @override
+  String get sectionAnniversaries => 'Anniversaries';
+
+  @override
+  String get addAnniversary => 'Add anniversary';
+
+  @override
+  String get anniversaryLabelHint => 'e.g. Wedding anniversary';
+
+  @override
+  String get sectionUpcomingBirthdays => 'Upcoming birthdays';
+
+  @override
+  String get birthdayToday => 'Birthday today!';
+
+  @override
+  String birthdayInDays(int n) {
+    return 'in $n days';
+  }
+
+  @override
+  String turnsAge(int age) {
+    return 'turns $age';
+  }
+
+  @override
+  String get toastSaved => 'Saved';
+
+  @override
+  String get toastDeleted => 'Deleted';
 }

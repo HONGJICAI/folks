@@ -17,6 +17,31 @@ enum PersonGroup {
   circle, // 圈子（平面 + 标签）
 }
 
+/// 出生日期精度：只知年 / 知年月 / 完整。年龄永远能算；只有 full 才进生日提醒。
+enum BirthPrecision { year, yearMonth, full }
+
+/// 按年循环的纪念日（结婚纪念日 / 相识 / 忌日…）。挂在 [Person] 上，用于年度提醒。
+class Anniversary {
+  const Anniversary({required this.label, required this.date});
+
+  final String label;
+  final DateTime date;
+
+  Anniversary copyWith({String? label, DateTime? date}) =>
+      Anniversary(label: label ?? this.label, date: date ?? this.date);
+
+  /// 序列化为单串（与 person 的列表字段一起存）：`label|isoDate`。
+  String encode() => '$label|${date.toIso8601String()}';
+
+  static Anniversary? decode(String s) {
+    final i = s.indexOf('|');
+    if (i < 0) return null;
+    final d = DateTime.tryParse(s.substring(i + 1));
+    if (d == null) return null;
+    return Anniversary(label: s.substring(0, i), date: d);
+  }
+}
+
 class Person {
   /// copyWith 哨兵：区分"参数省略"与"显式传 null"。
   static const Object _unset = Object();
@@ -28,6 +53,15 @@ class Person {
   final String? nickname;
   final Gender gender;
   final DateTime? birthDate;
+
+  /// 出生日期精度（只知年 / 年月 / 完整）。算年龄不受影响；只有 full 进生日提醒。
+  final BirthPrecision birthPrecision;
+
+  /// 是否在生日当天提醒。出生日期始终用于算年龄；关掉它只是不进"近期提醒"。
+  final bool remindBirthday;
+
+  /// 该人的纪念日列表（每年循环），用于提醒。
+  final List<Anniversary> anniversaries;
 
   /// 用户自定义的口头称呼，如「大表姐」「表外甥」。MVP 阶段由用户手填，
   /// P1 的称呼反向解析会基于此做半自动建议。
@@ -50,6 +84,9 @@ class Person {
   /// 是否为"我"（自己）。全局应仅一人为 true，作为家族树的锚点（居中点）。
   final bool isSelf;
 
+  /// 头像图片路径（本地副本 / 远程 URL），空则用首字头像。
+  final String? photoPath;
+
   // --- 联系方式（可选，单值从简）---
   /// 注意：电话**不是唯一标识**，多个 person 可共用同一号码（如爷爷奶奶共用老人机），
   /// 导入通讯录时也不按号码去重。主键始终是 [id]。
@@ -66,6 +103,9 @@ class Person {
     this.nickname,
     this.gender = Gender.unknown,
     this.birthDate,
+    this.birthPrecision = BirthPrecision.full,
+    this.remindBirthday = true,
+    this.anniversaries = const [],
     this.customAppellation,
     this.memo,
     this.group = PersonGroup.family,
@@ -74,6 +114,7 @@ class Person {
     this.spouseId,
     this.marriedIn = false,
     this.isSelf = false,
+    this.photoPath,
     this.phone,
     this.email,
     this.tags = const [],
@@ -89,11 +130,36 @@ class Person {
     final b = birthDate;
     if (b == null) return null;
     var age = now.year - b.year;
-    if (now.month < b.month || (now.month == b.month && now.day < b.day)) {
-      age--;
+    switch (birthPrecision) {
+      case BirthPrecision.year:
+        break; // 只知年，不按月日修正
+      case BirthPrecision.yearMonth:
+        if (now.month < b.month) age--;
+      case BirthPrecision.full:
+        if (now.month < b.month || (now.month == b.month && now.day < b.day)) {
+          age--;
+        }
     }
     return age;
   }
+
+  /// 出生日期的精度感知显示：1992 / 1992-11 / 1992-11-05。无生日返回 null。
+  String? get birthDisplay {
+    final b = birthDate;
+    if (b == null) return null;
+    final y = b.year.toString();
+    final m = b.month.toString().padLeft(2, '0');
+    final d = b.day.toString().padLeft(2, '0');
+    return switch (birthPrecision) {
+      BirthPrecision.year => y,
+      BirthPrecision.yearMonth => '$y-$m',
+      BirthPrecision.full => '$y-$m-$d',
+    };
+  }
+
+  /// 是否可在生日当天提醒（需要完整日期）。
+  bool get canRemindBirthday =>
+      birthDate != null && birthPrecision == BirthPrecision.full;
 
   /// 关系字段（[fatherId]/[motherId]/[spouseId]）用哨兵区分"不改"与"清空"：
   /// 省略 = 保持原值；显式传 `null` = 真正清空。普通 `?? this.x` 写法做不到后者。
@@ -103,6 +169,9 @@ class Person {
     String? nickname,
     Gender? gender,
     DateTime? birthDate,
+    BirthPrecision? birthPrecision,
+    bool? remindBirthday,
+    List<Anniversary>? anniversaries,
     String? customAppellation,
     String? memo,
     PersonGroup? group,
@@ -111,6 +180,7 @@ class Person {
     Object? spouseId = _unset,
     bool? marriedIn,
     bool? isSelf,
+    String? photoPath,
     String? phone,
     String? email,
     List<String>? tags,
@@ -121,6 +191,9 @@ class Person {
       nickname: nickname ?? this.nickname,
       gender: gender ?? this.gender,
       birthDate: birthDate ?? this.birthDate,
+      birthPrecision: birthPrecision ?? this.birthPrecision,
+      remindBirthday: remindBirthday ?? this.remindBirthday,
+      anniversaries: anniversaries ?? this.anniversaries,
       customAppellation: customAppellation ?? this.customAppellation,
       memo: memo ?? this.memo,
       group: group ?? this.group,
@@ -129,6 +202,7 @@ class Person {
       spouseId: identical(spouseId, _unset) ? this.spouseId : spouseId as int?,
       marriedIn: marriedIn ?? this.marriedIn,
       isSelf: isSelf ?? this.isSelf,
+      photoPath: photoPath ?? this.photoPath,
       phone: phone ?? this.phone,
       email: email ?? this.email,
       tags: tags ?? this.tags,
@@ -142,6 +216,9 @@ class Person {
         'nickname': nickname,
         'gender': gender.name,
         'birth_date': birthDate?.toIso8601String(),
+        'birth_precision': birthPrecision.name,
+        'remind_birthday': remindBirthday ? 1 : 0,
+        'anniversaries': anniversaries.map((a) => a.encode()).join(';;'),
         'custom_appellation': customAppellation,
         'memo': memo,
         'group': group.name,
@@ -150,6 +227,7 @@ class Person {
         'spouse_id': spouseId,
         'married_in': marriedIn ? 1 : 0,
         'is_self': isSelf ? 1 : 0,
+        'photo_path': photoPath,
         'phone': phone,
         'email': email,
         'tags': tags.join(';'),
@@ -163,6 +241,15 @@ class Person {
         birthDate: m['birth_date'] == null
             ? null
             : DateTime.parse(m['birth_date'] as String),
+        birthPrecision: BirthPrecision.values
+            .byName((m['birth_precision'] as String?) ?? 'full'),
+        remindBirthday: (m['remind_birthday'] as int?) != 0,
+        anniversaries: ((m['anniversaries'] as String?) ?? '')
+            .split(';;')
+            .where((s) => s.isNotEmpty)
+            .map(Anniversary.decode)
+            .whereType<Anniversary>()
+            .toList(),
         customAppellation: m['custom_appellation'] as String?,
         memo: m['memo'] as String?,
         group: PersonGroup.values.byName((m['group'] as String?) ?? 'family'),
@@ -171,6 +258,7 @@ class Person {
         spouseId: m['spouse_id'] as int?,
         marriedIn: (m['married_in'] as int?) == 1,
         isSelf: (m['is_self'] as int?) == 1,
+        photoPath: m['photo_path'] as String?,
         phone: m['phone'] as String?,
         email: m['email'] as String?,
         tags: ((m['tags'] as String?) ?? '')

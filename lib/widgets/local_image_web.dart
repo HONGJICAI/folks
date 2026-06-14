@@ -11,6 +11,9 @@ Widget buildLocalImageFill(String path) {
   return Image.network(path, fit: BoxFit.contain, errorBuilder: _broken);
 }
 
+/// web 端：统一 NetworkImage（blob / http）。
+ImageProvider localImageProvider(String path) => NetworkImage(path);
+
 Widget _broken(BuildContext _, Object _, StackTrace? _) => Container(
       width: 72,
       height: 72,

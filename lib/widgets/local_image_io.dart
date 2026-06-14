@@ -22,6 +22,14 @@ Widget buildLocalImageFill(String path) {
   return Image.file(File(path), fit: BoxFit.contain, errorBuilder: _broken);
 }
 
+/// 给 CircleAvatar 等用的 ImageProvider：远程 URL 用 NetworkImage，本地用 FileImage。
+ImageProvider localImageProvider(String path) {
+  if (path.startsWith('http') || path.startsWith('blob:')) {
+    return NetworkImage(path);
+  }
+  return FileImage(File(path));
+}
+
 Widget _broken(BuildContext _, Object _, StackTrace? _) => Container(
       width: 72,
       height: 72,

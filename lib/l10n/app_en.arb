@@ -20,6 +20,10 @@
   "settingBackup": "Backup & export",
   "settingImport": "Import from contacts",
   "settingAbout": "About",
+  "clearData": "Clear all data",
+  "clearDataConfirm": "Delete everyone and every memory? This can't be undone. A blank \"Me\" is kept.",
+  "actionClear": "Clear",
+  "clearDataDone": "All data cleared",
   "comingSoon": "Coming soon",
   "meNoSelf": "No \"Me\" set yet. Open a family member and mark them as you.",
 

@@ -20,6 +20,10 @@
   "settingBackup": "备份与导出",
   "settingImport": "从通讯录导入",
   "settingAbout": "关于",
+  "clearData": "清空数据",
+  "clearDataConfirm": "删除所有人和所有回忆？此操作不可撤销，仅保留一张空白的\"我\"。",
+  "actionClear": "清空",
+  "clearDataDone": "数据已清空",
   "comingSoon": "待实现",
   "meNoSelf": "还没设置\"我\"。打开某位家族成员，把 TA 标记为你自己。",
 

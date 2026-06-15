@@ -116,9 +116,43 @@ class _MeTabState extends State<MeTab> {
           _ComingSoonTile(
               icon: Icons.contacts_outlined, label: t.settingImport),
           _ComingSoonTile(icon: Icons.info_outline, label: t.settingAbout),
+          const Divider(height: 24),
+          ListTile(
+            leading: Icon(Icons.delete_forever_outlined,
+                color: Theme.of(context).colorScheme.error),
+            title: Text(t.clearData,
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            onTap: _clearData,
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _clearData() async {
+    final t = context.l10n;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.clearData),
+        content: Text(t.clearDataConfirm),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(t.actionCancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(t.actionClear)),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await _repo.clearAll(selfName: t.tabMe);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t.clearDataDone)),
+      );
+    }
   }
 }
 

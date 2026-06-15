@@ -62,6 +62,9 @@ abstract class FolksRepository {
   /// 指定"我自己"（全局唯一）：该人 isSelf=true，其余全部置 false。
   Future<void> setSelf(int personId);
 
+  /// 清空所有人与回忆，仅保留一张空白的"我"（保住锚点）。不可撤销。
+  Future<void> clearAll({required String selfName});
+
   // ============ 圈子（标签） ============
 
   /// 当前所有用过的标签（去重）。

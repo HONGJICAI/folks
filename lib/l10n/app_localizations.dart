@@ -200,6 +200,30 @@ abstract class AppLocalizations {
   /// **'About'**
   String get settingAbout;
 
+  /// No description provided for @clearData.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all data'**
+  String get clearData;
+
+  /// No description provided for @clearDataConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everyone and every memory? This can\'t be undone. A blank \"Me\" is kept.'**
+  String get clearDataConfirm;
+
+  /// No description provided for @actionClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get actionClear;
+
+  /// No description provided for @clearDataDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All data cleared'**
+  String get clearDataDone;
+
   /// No description provided for @comingSoon.
   ///
   /// In en, this message translates to:

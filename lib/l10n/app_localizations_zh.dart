@@ -60,6 +60,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingAbout => '关于';
 
   @override
+  String get clearData => '清空数据';
+
+  @override
+  String get clearDataConfirm => '删除所有人和所有回忆？此操作不可撤销，仅保留一张空白的\"我\"。';
+
+  @override
+  String get actionClear => '清空';
+
+  @override
+  String get clearDataDone => '数据已清空';
+
+  @override
   String get comingSoon => '待实现';
 
   @override

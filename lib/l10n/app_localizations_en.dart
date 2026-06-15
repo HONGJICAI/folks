@@ -60,6 +60,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingAbout => 'About';
 
   @override
+  String get clearData => 'Clear all data';
+
+  @override
+  String get clearDataConfirm =>
+      'Delete everyone and every memory? This can\'t be undone. A blank \"Me\" is kept.';
+
+  @override
+  String get actionClear => 'Clear';
+
+  @override
+  String get clearDataDone => 'All data cleared';
+
+  @override
   String get comingSoon => 'Coming soon';
 
   @override

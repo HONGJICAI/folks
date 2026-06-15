@@ -95,6 +95,21 @@ void main() {
       expect(await repo.getPerson(me.id), isNotNull); // 仍在
     });
 
+    test('clearAll 清空所有人/回忆，只留一张空白的"我"', () async {
+      final repo = FakeRepository();
+      await repo.addEvent(Event(
+          id: 0,
+          type: EventType.experience,
+          title: 'x',
+          occurDate: DateTime(2020)));
+      await repo.clearAll(selfName: '我');
+      final people = await repo.getAllPersons();
+      expect(people.length, 1);
+      expect(people.single.isSelf, isTrue);
+      expect(people.single.name, '我');
+      expect(await repo.getAllEvents(), isEmpty);
+    });
+
     test('任意变更会触发 changes 通知', () async {
       final repo = FakeRepository();
       var fired = 0;

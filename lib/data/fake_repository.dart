@@ -346,6 +346,22 @@ class FakeRepository implements FolksRepository {
   }
 
   @override
+  Future<void> clearAll({required String selfName}) async {
+    _persons.clear();
+    _events.clear();
+    _personSeq = 0;
+    _eventSeq = 0;
+    final me = Person(
+      id: _nextPersonId,
+      name: selfName,
+      group: PersonGroup.family,
+      isSelf: true,
+    );
+    _persons[me.id] = me;
+    _bus.ping();
+  }
+
+  @override
   Future<void> setSelf(int personId) async {
     if (_persons[personId] == null) return;
     for (final p in _persons.values.toList()) {

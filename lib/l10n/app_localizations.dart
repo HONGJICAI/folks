@@ -602,6 +602,18 @@ abstract class AppLocalizations {
   /// **'Unknown'**
   String get genderUnknown;
 
+  /// No description provided for @genderLockedByParentRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender is fixed by the parent role'**
+  String get genderLockedByParentRole;
+
+  /// No description provided for @genderRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a gender'**
+  String get genderRequired;
+
   /// No description provided for @ageYears.
   ///
   /// In en, this message translates to:

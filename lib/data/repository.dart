@@ -55,6 +55,10 @@ abstract class FolksRepository {
   /// 解除某人的配偶关系（双向清除）。
   Future<void> clearSpouse(int personId);
 
+  /// 保守地把某成员的「父母」关联为配偶：仅当父母双全、且双方当前都没有配偶时才连，
+  /// 已有配偶（如再婚）一律不动。用于"加完父母后自动成对"的常见默认。
+  Future<void> linkCoParentsIfUnset(int childId);
+
   /// 把某人指定为其夫妻里的"血亲主位"（marriedIn=false），配偶置为姻亲（marriedIn=true）。
   /// 家族树里"主副对调"即调用此方法把副位提升为主位。
   Future<void> setBloodPrimary(int personId);

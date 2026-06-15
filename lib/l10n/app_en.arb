@@ -99,6 +99,8 @@
   "genderMale": "Male",
   "genderFemale": "Female",
   "genderUnknown": "Unknown",
+  "genderLockedByParentRole": "Gender is fixed by the parent role",
+  "genderRequired": "Please select a gender",
 
   "ageYears": "{age} yo",
   "@ageYears": { "placeholders": { "age": { "type": "int" } } },

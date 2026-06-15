@@ -158,10 +158,12 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     );
   }
 
-  Future<Person?> _pushAddFamily() => Navigator.of(context).push<Person>(
-      MaterialPageRoute(
-          builder: (_) => const PersonFormPage(
-              group: PersonGroup.family, showRelations: false)));
+  Future<Person?> _pushAddFamily({Gender? forcedGender}) =>
+      Navigator.of(context).push<Person>(MaterialPageRoute(
+          builder: (_) => PersonFormPage(
+              group: PersonGroup.family,
+              showRelations: false,
+              forcedGender: forcedGender)));
 
   Future<void> _addChild(Person parent) async {
     final isFather = await _resolveParentRole(parent);
@@ -172,6 +174,8 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     if (!mounted) return;
     final pick = await _pickRelative(context.l10n.addChild, candidates);
     if (pick == null || !mounted) return;
+    // 另一位家长 = 该家长的配偶：孩子一并挂到夫妻双方（无配偶则只挂这一位）。
+    final coParentId = parent.spouseId;
     if (pick == 'new') {
       final created = await Navigator.of(context).push<Person>(
         MaterialPageRoute(
@@ -180,12 +184,28 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                 parentIsFather: isFather,
                 showRelations: false)),
       );
-      if (created != null) _reload();
+      if (created == null) return;
+      // 表单已写入这一位家长；再补另一位（配偶）到空着的另一侧。
+      if (coParentId != null) {
+        await _repo.updatePerson(isFather
+            ? created.copyWith(motherId: coParentId)
+            : created.copyWith(fatherId: coParentId));
+      }
+      _reload();
     } else {
       final child = all.firstWhere((c) => c.id == pick);
-      await _repo.updatePerson(isFather
+      var updated = isFather
           ? child.copyWith(fatherId: parent.id)
-          : child.copyWith(motherId: parent.id));
+          : child.copyWith(motherId: parent.id);
+      // 仅在另一侧还空着时补配偶，避免覆盖孩子已有的另一位家长。
+      if (coParentId != null) {
+        if (isFather && updated.motherId == null) {
+          updated = updated.copyWith(motherId: coParentId);
+        } else if (!isFather && updated.fatherId == null) {
+          updated = updated.copyWith(fatherId: coParentId);
+        }
+      }
+      await _repo.updatePerson(updated);
       _reload();
     }
   }
@@ -195,14 +215,20 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     if (p == null) return;
     final all = await _repo.getAllPersons();
     final exclude = {p.id, ..._descendantIds(p.id, all)};
-    final candidates = all.where((c) => !exclude.contains(c.id)).toList();
+    // 软过滤：只排除"明确异性"的候选（父排除女、母排除男），保留同性 + 未知性别。
+    final wrongGender = isFather ? Gender.female : Gender.male;
+    final candidates = all
+        .where((c) => !exclude.contains(c.id) && c.gender != wrongGender)
+        .toList();
     if (!mounted) return;
     final pick = await _pickRelative(
         isFather ? context.l10n.addFather : context.l10n.addMother, candidates);
     if (pick == null) return;
     int? parentId;
     if (pick == 'new') {
-      final created = await _pushAddFamily();
+      // 以父/母角色新建：性别在表单里就锁定（父=男、母=女）。
+      final created = await _pushAddFamily(
+          forcedGender: isFather ? Gender.male : Gender.female);
       if (created == null) return;
       parentId = created.id;
     } else {
@@ -211,6 +237,8 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
     await _repo.updatePerson(isFather
         ? p.copyWith(fatherId: parentId)
         : p.copyWith(motherId: parentId));
+    // 父母双全且都未婚配时，自动关联为配偶（保守默认；详情页可解除）。
+    await _repo.linkCoParentsIfUnset(p.id);
     _reload();
   }
 

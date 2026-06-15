@@ -20,12 +20,16 @@ class PersonFormPage extends StatefulWidget {
       this.existing,
       this.parentOf,
       this.parentIsFather,
+      this.forcedGender,
       this.showRelations = true})
       : assert(group != null || existing != null || parentOf != null,
             '需 group / existing / parentOf 之一');
 
   final PersonGroup? group;
   final Person? existing;
+
+  /// 以"父/母角色"新建此人时锁定的性别（父=男、母=女）。设置后性别选择器禁用。
+  final Gender? forcedGender;
 
   /// 从某人详情页「添加子女」时传入：新成员的家长，分组跟随 ta。
   final Person? parentOf;
@@ -72,12 +76,26 @@ class _PersonFormPageState extends State<PersonFormPage> {
   List<Person> _familyMembers = const [];
   List<String> _tagSuggestions = const [];
   bool _dirty = false;
+  bool _genderError = false; // 未选性别时保存触发的校验红字
 
   void _markDirty() {
     if (!_dirty) setState(() => _dirty = true);
   }
 
   bool get _isFamily => widget.effectiveGroup == PersonGroup.family;
+
+  /// 若正在编辑的人已被他人引用为父/母，则其性别被角色锁定（父=男、母=女），
+  /// 不可改。新建中的人不锁。依赖已加载的 [_familyMembers]。
+  Gender? get _lockedGender {
+    if (widget.forcedGender != null) return widget.forcedGender; // 以父/母角色新建
+    final id = widget.existing?.id;
+    if (id == null) return null;
+    for (final m in _familyMembers) {
+      if (m.fatherId == id) return Gender.male;
+      if (m.motherId == id) return Gender.female;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -328,6 +346,13 @@ class _PersonFormPageState extends State<PersonFormPage> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // 性别必选（角色锁定的视为已定）。
+    final effGender = _lockedGender ?? _gender;
+    if (effGender == Gender.unknown) {
+      setState(() => _genderError = true);
+      return;
+    }
+
     final tags = _tags.text
         .split(RegExp(r'[,，;；\s]+'))
         .where((e) => e.isNotEmpty)
@@ -356,7 +381,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
       id: widget.existing?.id ?? 0, // 新增时 addPerson 赋真实 id
       name: _name.text.trim(),
       realName: nn(_realName),
-      gender: _gender,
+      gender: effGender, // 必选，且角色锁定优先（仓库也会强制收敛）
       birthDate: bd,
       birthPrecision: bp,
       remindBirthday: _remindBirthday,
@@ -390,6 +415,8 @@ class _PersonFormPageState extends State<PersonFormPage> {
         await _repo.setSpouse(saved.id, _spouseId!);
       }
     }
+    // 同时填了父亲和母亲、且双方都未婚配时，自动把这对父母关联为配偶。
+    if (_isFamily) await _repo.linkCoParentsIfUnset(saved.id);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.toastSaved)),
@@ -486,20 +513,53 @@ class _PersonFormPageState extends State<PersonFormPage> {
                   border: const OutlineInputBorder()),
             ),
             const SizedBox(height: Dim.gap),
-            SegmentedButton<Gender>(
-              segments: [
-                ButtonSegment(value: Gender.male, label: Text(t.genderMale)),
-                ButtonSegment(
-                    value: Gender.female, label: Text(t.genderFemale)),
-                ButtonSegment(
-                    value: Gender.unknown, label: Text(t.genderUnknown)),
-              ],
-              selected: {_gender},
-              onSelectionChanged: (s) => setState(() {
-                _gender = s.first;
-                _dirty = true;
-              }),
-            ),
+            Builder(builder: (context) {
+              final locked = _lockedGender;
+              final eff = locked ?? _gender;
+              final scheme = Theme.of(context).colorScheme;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SegmentedButton<Gender>(
+                    // 性别必选：去掉"未知"项；未选时空着，逼用户选。
+                    emptySelectionAllowed: true,
+                    segments: [
+                      ButtonSegment(
+                          value: Gender.male, label: Text(t.genderMale)),
+                      ButtonSegment(
+                          value: Gender.female, label: Text(t.genderFemale)),
+                    ],
+                    // 角色锁定时强制显示锁定值并禁用；未知则显示为空。
+                    selected: eff == Gender.unknown ? {} : {eff},
+                    onSelectionChanged: locked != null
+                        ? null
+                        : (s) => setState(() {
+                              if (s.isNotEmpty) _gender = s.first;
+                              _dirty = true;
+                              _genderError = false;
+                            }),
+                  ),
+                  if (locked != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(t.genderLockedByParentRole,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: scheme.onSurfaceVariant)),
+                    )
+                  else if (_genderError)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(t.genderRequired,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: scheme.error)),
+                    ),
+                ],
+              );
+            }),
             const SizedBox(height: Dim.gap),
             _buildBirthday(t),
             if (_birthYear != null &&
@@ -543,6 +603,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 label: t.relationFather,
                 members: _familyMembers,
                 value: _fatherId,
+                excludeGender: Gender.female,
                 onChanged: (v) => setState(() {
                   _fatherId = v;
                   _dirty = true;
@@ -553,6 +614,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 label: t.relationMother,
                 members: _familyMembers,
                 value: _motherId,
+                excludeGender: Gender.male,
                 onChanged: (v) => setState(() {
                   _motherId = v;
                   _dirty = true;
@@ -635,6 +697,7 @@ class _RelationPicker extends StatelessWidget {
     required this.members,
     required this.value,
     required this.onChanged,
+    this.excludeGender,
   });
 
   final String label;
@@ -642,15 +705,26 @@ class _RelationPicker extends StatelessWidget {
   final int? value;
   final ValueChanged<int?> onChanged;
 
+  /// 软过滤：隐藏明确为该性别的候选（父排除女、母排除男），保留同性 + 未知。
+  /// 当前已选中的成员始终保留，避免历史数据导致下拉项缺失。
+  final Gender? excludeGender;
+
   @override
   Widget build(BuildContext context) {
+    final shown = [
+      for (final m in members)
+        if (excludeGender == null ||
+            m.gender != excludeGender ||
+            m.id == value)
+          m,
+    ];
     return DropdownButtonFormField<int?>(
       initialValue: value,
       decoration:
           InputDecoration(labelText: label, border: const OutlineInputBorder()),
       items: [
         const DropdownMenuItem<int?>(value: null, child: Text('—')),
-        for (final m in members)
+        for (final m in shown)
           DropdownMenuItem<int?>(value: m.id, child: Text(m.displayName)),
       ],
       onChanged: onChanged,

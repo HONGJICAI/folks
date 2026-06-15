@@ -110,6 +110,57 @@ void main() {
       expect(await repo.getAllEvents(), isEmpty);
     });
 
+    test('被设为父/母者性别强制收敛：父=男、母=女', () async {
+      final repo = FakeRepository();
+      final dad = await repo.addPerson(const Person(id: 0, name: 'D'));
+      final mom =
+          await repo.addPerson(const Person(id: 0, name: 'M', gender: Gender.male));
+      final kid = await repo.addPerson(const Person(id: 0, name: 'K'));
+      await repo.updatePerson(
+          (await repo.getPerson(kid.id))!.copyWith(fatherId: dad.id, motherId: mom.id));
+      expect((await repo.getPerson(dad.id))!.gender, Gender.male); // 未知→男
+      expect((await repo.getPerson(mom.id))!.gender, Gender.female); // 男→女(覆盖)
+    });
+
+    test('给已有成员加父亲：fatherId 应持久化（复现"爷爷没 link"）', () async {
+      final repo = FakeRepository();
+      final dad = await repo.addPerson(const Person(id: 0, name: 'dad'));
+      // 模拟详情页 _addParent：先建爷爷，再把 dad.fatherId 指过去。
+      final grandpa = await repo.addPerson(const Person(id: 0, name: '爷爷'));
+      await repo.updatePerson(
+          (await repo.getPerson(dad.id))!.copyWith(fatherId: grandpa.id));
+      expect((await repo.getPerson(dad.id))!.fatherId, grandpa.id);
+      // 反查：爷爷应能在 getChildren 里看到 dad。
+      final kids = await repo.getChildren(grandpa.id);
+      expect(kids.map((p) => p.id), contains(dad.id));
+    });
+
+    test('linkCoParentsIfUnset：父母双全且都未婚配 → 自动成对', () async {
+      final repo = FakeRepository();
+      final kid = await repo.addPerson(const Person(id: 0, name: 'K'));
+      final f = await repo.addPerson(const Person(id: 0, name: 'F'));
+      final m = await repo.addPerson(const Person(id: 0, name: 'M'));
+      await repo.updatePerson(
+          (await repo.getPerson(kid.id))!.copyWith(fatherId: f.id, motherId: m.id));
+      await repo.linkCoParentsIfUnset(kid.id);
+      expect((await repo.getPerson(f.id))!.spouseId, m.id);
+      expect((await repo.getPerson(m.id))!.spouseId, f.id);
+    });
+
+    test('linkCoParentsIfUnset：一方已有配偶 → 不动（尊重再婚等）', () async {
+      final repo = FakeRepository();
+      final kid = await repo.addPerson(const Person(id: 0, name: 'K'));
+      final f = await repo.addPerson(const Person(id: 0, name: 'F'));
+      final m = await repo.addPerson(const Person(id: 0, name: 'M'));
+      final other = await repo.addPerson(const Person(id: 0, name: 'StepMom'));
+      await repo.setSpouse(f.id, other.id); // 父亲已与继母结婚
+      await repo.updatePerson(
+          (await repo.getPerson(kid.id))!.copyWith(fatherId: f.id, motherId: m.id));
+      await repo.linkCoParentsIfUnset(kid.id);
+      expect((await repo.getPerson(f.id))!.spouseId, other.id); // 仍是继母
+      expect((await repo.getPerson(m.id))!.spouseId, isNull); // 生母未被强连
+    });
+
     test('任意变更会触发 changes 通知', () async {
       final repo = FakeRepository();
       var fired = 0;

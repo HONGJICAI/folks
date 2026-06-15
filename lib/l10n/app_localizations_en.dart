@@ -273,6 +273,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get genderUnknown => 'Unknown';
 
   @override
+  String get genderLockedByParentRole => 'Gender is fixed by the parent role';
+
+  @override
+  String get genderRequired => 'Please select a gender';
+
+  @override
   String ageYears(int age) {
     return '$age yo';
   }

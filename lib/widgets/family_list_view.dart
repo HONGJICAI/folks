@@ -4,6 +4,7 @@ import '../l10n/l10n.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
 import 'avatar.dart';
+import 'family_forest.dart';
 
 /// 家族「列表视图」：缩进表达层级，配偶成对、子女去重，与族谱图同一套主副规则。
 class FamilyListView extends StatelessWidget {
@@ -40,60 +41,22 @@ class FamilyListView extends StatelessWidget {
   }
 
   List<Widget> _buildForest(BuildContext context) {
-    final byId = {for (final p in people) p.id: p};
-    List<Person> childrenOf(int id) =>
-        people.where((p) => p.fatherId == id || p.motherId == id).toList();
-    bool hasParentInSet(Person p) =>
-        (p.fatherId != null && byId.containsKey(p.fatherId)) ||
-        (p.motherId != null && byId.containsKey(p.motherId));
-
-    final visited = <int>{};
     final rows = <Widget>[];
-
-    void walk(Person p, int depth) {
-      if (visited.contains(p.id)) return;
-      visited.add(p.id);
-      final spouse = p.spouseId != null ? byId[p.spouseId] : null;
-      if (spouse != null) visited.add(spouse.id);
-
-      var primary = p;
-      var secondary = spouse;
-      if (spouse != null) {
-        final pBlood = !p.marriedIn;
-        final sBlood = !spouse.marriedIn;
-        if ((sBlood && !pBlood) || (pBlood == sBlood && spouse.id < p.id)) {
-          primary = spouse;
-          secondary = p;
-        }
-      }
-
+    void walk(FamilyForestNode n, int depth) {
       rows.add(_FamilyRow(
-        primary: primary,
-        secondary: secondary,
+        primary: n.primary,
+        secondary: n.secondary,
         depth: depth,
-        onOpen: () => onOpen(primary.id),
+        onOpen: () => onOpen(n.primary.id),
         onSwapPersist: onSwap, // 行内乐观翻转 + 静默持久化
       ));
-
-      final kids = <int, Person>{};
-      for (final k in childrenOf(p.id)) {
-        kids[k.id] = k;
-      }
-      if (spouse != null) {
-        for (final k in childrenOf(spouse.id)) {
-          kids[k.id] = k;
-        }
-      }
-      for (final k in kids.values) {
-        walk(k, depth + 1);
+      for (final c in n.children) {
+        walk(c, depth + 1);
       }
     }
 
-    for (final r in people.where((p) => !hasParentInSet(p))) {
-      walk(r, 0);
-    }
-    for (final p in people) {
-      if (!visited.contains(p.id)) walk(p, 0);
+    for (final root in buildFamilyForest(people)) {
+      walk(root, 0);
     }
     return rows;
   }

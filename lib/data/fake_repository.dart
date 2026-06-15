@@ -190,6 +190,35 @@ class FakeRepository implements FolksRepository {
     ));
   }
 
+  /// 不变量：被引用为父亲者必为男、被引用为母亲者必为女
+  /// （设计上"父/母角色决定性别"）。任何改动后调用 [_notify] 自动收敛。
+  void _enforceParentGenders() {
+    final fatherIds = <int>{};
+    final motherIds = <int>{};
+    for (final p in _persons.values) {
+      if (p.fatherId != null) fatherIds.add(p.fatherId!);
+      if (p.motherId != null) motherIds.add(p.motherId!);
+    }
+    for (final id in fatherIds) {
+      final p = _persons[id];
+      if (p != null && p.gender != Gender.male) {
+        _persons[id] = p.copyWith(gender: Gender.male);
+      }
+    }
+    for (final id in motherIds) {
+      final p = _persons[id];
+      if (p != null && p.gender != Gender.female) {
+        _persons[id] = p.copyWith(gender: Gender.female);
+      }
+    }
+  }
+
+  /// 通知前先收敛父母性别不变量，保证所有写入路径都一致。
+  void _notify() {
+    _enforceParentGenders();
+    _bus.ping();
+  }
+
   Person _put(Person p) {
     _persons[p.id] = p;
     return p;
@@ -228,14 +257,14 @@ class FakeRepository implements FolksRepository {
   Future<Person> addPerson(Person person) async {
     final created = person.copyWith(id: _nextPersonId);
     _persons[created.id] = created;
-    _bus.ping();
+    _notify();
     return created;
   }
 
   @override
   Future<void> updatePerson(Person person) async {
     _persons[person.id] = person;
-    _bus.ping();
+    _notify();
   }
 
   @override
@@ -258,7 +287,7 @@ class FakeRepository implements FolksRepository {
         );
       }
     }
-    _bus.ping();
+    _notify();
   }
 
   // ============ 家族 ============
@@ -275,7 +304,7 @@ class FakeRepository implements FolksRepository {
     if (child != null) {
       _persons[childId] = child.copyWith(fatherId: created.id);
     }
-    _bus.ping();
+    _notify();
     return created;
   }
 
@@ -286,7 +315,7 @@ class FakeRepository implements FolksRepository {
     if (child != null) {
       _persons[childId] = child.copyWith(motherId: created.id);
     }
-    _bus.ping();
+    _notify();
     return created;
   }
 
@@ -309,13 +338,26 @@ class FakeRepository implements FolksRepository {
     _unlinkSpouse(bId, keep: aId);
     _persons[aId] = _persons[aId]!.copyWith(spouseId: bId);
     _persons[bId] = _persons[bId]!.copyWith(spouseId: aId);
-    _bus.ping();
+    _notify();
   }
 
   @override
   Future<void> clearSpouse(int personId) async {
     _unlinkSpouse(personId);
-    _bus.ping();
+    _notify();
+  }
+
+  @override
+  Future<void> linkCoParentsIfUnset(int childId) async {
+    final c = _persons[childId];
+    final fid = c?.fatherId;
+    final mid = c?.motherId;
+    if (fid == null || mid == null) return; // 父母未双全
+    final f = _persons[fid];
+    final m = _persons[mid];
+    if (f == null || m == null) return;
+    if (f.spouseId != null || m.spouseId != null) return; // 任一方已有配偶则不动
+    await setSpouse(fid, mid); // setSpouse 内部已 _notify
   }
 
   /// 解除 [personId] 的配偶关系（双向清干净）。
@@ -358,7 +400,7 @@ class FakeRepository implements FolksRepository {
       isSelf: true,
     );
     _persons[me.id] = me;
-    _bus.ping();
+    _notify();
   }
 
   @override
@@ -370,7 +412,7 @@ class FakeRepository implements FolksRepository {
         _persons[p.id] = p.copyWith(isSelf: shouldBe);
       }
     }
-    _bus.ping();
+    _notify();
   }
 
   void _link(int aId, int bId) {
@@ -436,20 +478,20 @@ class FakeRepository implements FolksRepository {
   Future<Event> addEvent(Event event) async {
     final created = event.copyWith(id: _nextEventId);
     _events[created.id] = created;
-    _bus.ping();
+    _notify();
     return created;
   }
 
   @override
   Future<void> updateEvent(Event event) async {
     _events[event.id] = event;
-    _bus.ping();
+    _notify();
   }
 
   @override
   Future<void> deleteEvent(int id) async {
     _events.remove(id);
-    _bus.ping();
+    _notify();
   }
 
   // ============ 差额清算 ============

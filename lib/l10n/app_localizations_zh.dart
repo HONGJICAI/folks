@@ -269,6 +269,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get genderUnknown => '未知';
 
   @override
+  String get genderLockedByParentRole => '性别由父/母角色决定，不可更改';
+
+  @override
+  String get genderRequired => '请选择性别';
+
+  @override
   String ageYears(int age) {
     return '$age 岁';
   }

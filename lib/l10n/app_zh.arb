@@ -95,6 +95,8 @@
   "genderMale": "男",
   "genderFemale": "女",
   "genderUnknown": "未知",
+  "genderLockedByParentRole": "性别由父/母角色决定，不可更改",
+  "genderRequired": "请选择性别",
 
   "ageYears": "{age} 岁",
 

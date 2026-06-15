@@ -7,6 +7,7 @@ import '../l10n/l10n.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar.dart';
+import '../widgets/tag_suggestions.dart';
 
 /// 成员表单：新增或编辑。
 /// - 新增：传 [group]（家族 / 圈子）。
@@ -69,6 +70,12 @@ class _PersonFormPageState extends State<PersonFormPage> {
   int? _motherId;
   int? _spouseId;
   List<Person> _familyMembers = const [];
+  List<String> _tagSuggestions = const [];
+  bool _dirty = false;
+
+  void _markDirty() {
+    if (!_dirty) setState(() => _dirty = true);
+  }
 
   bool get _isFamily => widget.effectiveGroup == PersonGroup.family;
 
@@ -123,6 +130,23 @@ class _PersonFormPageState extends State<PersonFormPage> {
               list.where((p) => p.id != widget.existing?.id).toList());
         }
       });
+    } else {
+      _repo.getAllTags().then((tags) {
+        if (mounted) setState(() => _tagSuggestions = tags);
+      });
+    }
+
+    // 文本改动标记为"有未保存修改"（在预填之后再挂监听，避免初始化误标）。
+    for (final c in [
+      _name,
+      _realName,
+      _appellation,
+      _phone,
+      _email,
+      _tags,
+      _memo
+    ]) {
+      c.addListener(_markDirty);
     }
   }
 
@@ -195,13 +219,21 @@ class _PersonFormPageState extends State<PersonFormPage> {
     );
     labelCtrl.dispose();
     if (result != null) {
-      setState(() => _anniversaries = [..._anniversaries, result]);
+      setState(() {
+        _anniversaries = [..._anniversaries, result];
+        _dirty = true;
+      });
     }
   }
 
   Future<void> _pickAvatar() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _photoPath = picked.path);
+    if (picked != null) {
+      setState(() {
+        _photoPath = picked.path;
+        _dirty = true;
+      });
+    }
   }
 
   static int _daysIn(int year, int month) => DateTime(year, month + 1, 0).day;
@@ -233,6 +265,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 DropdownMenuItem(value: y, child: Text('$y')),
             ],
             onChanged: (v) => setState(() {
+              _dirty = true;
               _birthYear = v;
               if (v == null) {
                 _birthMonth = null;
@@ -257,6 +290,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
             onChanged: _birthYear == null
                 ? null
                 : (v) => setState(() {
+                      _dirty = true;
                       _birthMonth = v;
                       if (v == null ||
                           (_birthDay != null &&
@@ -281,7 +315,10 @@ class _PersonFormPageState extends State<PersonFormPage> {
             ],
             onChanged: _birthMonth == null
                 ? null
-                : (v) => setState(() => _birthDay = v),
+                : (v) => setState(() {
+                      _birthDay = v;
+                      _dirty = true;
+                    }),
           ),
         ),
       ],
@@ -361,11 +398,38 @@ class _PersonFormPageState extends State<PersonFormPage> {
     }
   }
 
+  /// 返回 true 表示可以离开（无改动或用户确认放弃）。
+  Future<bool> _confirmDiscard() async {
+    if (!_dirty) return true;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.discardTitle),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(ctx.l10n.actionCancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(ctx.l10n.actionDiscard)),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.l10n;
 
-    return Scaffold(
+    return PopScope(
+      canPop: !_dirty,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final discard = await _confirmDiscard();
+        if (discard && context.mounted) Navigator.pop(context);
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(widget.isEditing
             ? t.editProfile
@@ -431,7 +495,10 @@ class _PersonFormPageState extends State<PersonFormPage> {
                     value: Gender.unknown, label: Text(t.genderUnknown)),
               ],
               selected: {_gender},
-              onSelectionChanged: (s) => setState(() => _gender = s.first),
+              onSelectionChanged: (s) => setState(() {
+                _gender = s.first;
+                _dirty = true;
+              }),
             ),
             const SizedBox(height: Dim.gap),
             _buildBirthday(t),
@@ -443,7 +510,10 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 secondary: const Icon(Icons.notifications_outlined),
                 title: Text(t.remindBirthday),
                 value: _remindBirthday,
-                onChanged: (v) => setState(() => _remindBirthday = v),
+                onChanged: (v) => setState(() {
+                  _remindBirthday = v;
+                  _dirty = true;
+                }),
               ),
             const SizedBox(height: Dim.gap),
             TextFormField(
@@ -473,21 +543,30 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 label: t.relationFather,
                 members: _familyMembers,
                 value: _fatherId,
-                onChanged: (v) => setState(() => _fatherId = v),
+                onChanged: (v) => setState(() {
+                  _fatherId = v;
+                  _dirty = true;
+                }),
               ),
               const SizedBox(height: Dim.gap),
               _RelationPicker(
                 label: t.relationMother,
                 members: _familyMembers,
                 value: _motherId,
-                onChanged: (v) => setState(() => _motherId = v),
+                onChanged: (v) => setState(() {
+                  _motherId = v;
+                  _dirty = true;
+                }),
               ),
               const SizedBox(height: Dim.gap),
               _RelationPicker(
                 label: t.relationSpouse,
                 members: _familyMembers,
                 value: _spouseId,
-                onChanged: (v) => setState(() => _spouseId = v),
+                onChanged: (v) => setState(() {
+                  _spouseId = v;
+                  _dirty = true;
+                }),
               ),
               const SizedBox(height: Dim.gap),
             ],
@@ -499,6 +578,11 @@ class _PersonFormPageState extends State<PersonFormPage> {
                   hintText: t.fieldTagsHint,
                   border: const OutlineInputBorder(),
                 ),
+              ),
+              TagSuggestions(
+                all: _tagSuggestions,
+                controller: _tags,
+                onChanged: () => setState(() {}),
               ),
               const SizedBox(height: Dim.gap),
             ],
@@ -523,8 +607,10 @@ class _PersonFormPageState extends State<PersonFormPage> {
                 subtitle: Text(_fmtDate(_anniversaries[i].date)),
                 trailing: IconButton(
                   icon: const Icon(Icons.close, size: 18),
-                  onPressed: () => setState(
-                      () => _anniversaries = [..._anniversaries]..removeAt(i)),
+                  onPressed: () => setState(() {
+                    _anniversaries = [..._anniversaries]..removeAt(i);
+                    _dirty = true;
+                  }),
                 ),
               ),
             const SizedBox(height: Dim.gap),
@@ -536,6 +622,7 @@ class _PersonFormPageState extends State<PersonFormPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

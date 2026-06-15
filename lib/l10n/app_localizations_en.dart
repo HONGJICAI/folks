@@ -369,6 +369,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelBirthday => 'Birthday';
 
   @override
+  String get sectionDates => 'Important dates';
+
+  @override
+  String get discardTitle => 'Discard changes?';
+
+  @override
+  String get actionDiscard => 'Discard';
+
+  @override
+  String get tagSuggestions => 'Existing tags';
+
+  @override
   String anniversaryYears(int n) {
     return '$n yr';
   }

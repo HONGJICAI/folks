@@ -365,6 +365,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get labelBirthday => '生日';
 
   @override
+  String get sectionDates => '重要日期';
+
+  @override
+  String get discardTitle => '放弃修改？';
+
+  @override
+  String get actionDiscard => '放弃';
+
+  @override
+  String get tagSuggestions => '已有标签';
+
+  @override
   String anniversaryYears(int n) {
     return '$n 周年';
   }

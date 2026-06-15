@@ -8,6 +8,7 @@ import '../models/event.dart';
 import '../models/person.dart';
 import '../theme/app_theme.dart';
 import '../l10n/l10n.dart';
+import '../util/dates.dart';
 import '../widgets/avatar.dart';
 import '../widgets/event_card.dart';
 import 'event_detail.dart';
@@ -353,6 +354,7 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                   onUnlinkSpouse: _unlinkSpouseFor,
                 ),
               _ContactInfo(person: person),
+              _DatesSection(person: person),
               const SizedBox(height: Dim.gap),
               _ChildrenSection(
                 children: data.children,
@@ -666,6 +668,60 @@ class _ChildrenSection extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// 重要日期：生日（按精度显示）+ 各纪念日，含"还有 N 天"。
+class _DatesSection extends StatelessWidget {
+  const _DatesSection({required this.person});
+  final Person person;
+
+  String _fmt(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Widget? _countdown(BuildContext context, DateTime date) {
+    final days = daysUntilNextBirthday(date, DateTime.now());
+    final t = context.l10n;
+    final text = days == 0 ? t.dateToday : t.birthdayInDays(days);
+    return Text(text,
+        style: TextStyle(
+            color: days == 0
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 12));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    final rows = <Widget>[];
+
+    if (person.birthDate != null) {
+      rows.add(ListTile(
+        dense: true,
+        leading: const Icon(Icons.cake_outlined, size: 18),
+        title: Text(t.labelBirthday),
+        subtitle: Text(person.birthDisplay!),
+        trailing: person.canRemindBirthday
+            ? _countdown(context, person.birthDate!)
+            : null,
+      ));
+    }
+    for (final a in person.anniversaries) {
+      rows.add(ListTile(
+        dense: true,
+        leading: const Icon(Icons.event_outlined, size: 18),
+        title: Text(a.label),
+        subtitle: Text(_fmt(a.date)),
+        trailing: _countdown(context, a.date),
+      ));
+    }
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: Dim.gap),
+      child: Card(clipBehavior: Clip.antiAlias, child: Column(children: rows)),
     );
   }
 }

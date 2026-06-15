@@ -129,6 +129,10 @@
 
   "sectionReminders": "近期提醒",
   "labelBirthday": "生日",
+  "sectionDates": "重要日期",
+  "discardTitle": "放弃修改？",
+  "actionDiscard": "放弃",
+  "tagSuggestions": "已有标签",
   "anniversaryYears": "{n} 周年",
   "remindBirthday": "提醒生日",
   "sectionAnniversaries": "纪念日",

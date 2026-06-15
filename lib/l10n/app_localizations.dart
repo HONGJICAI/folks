@@ -770,6 +770,30 @@ abstract class AppLocalizations {
   /// **'Birthday'**
   String get labelBirthday;
 
+  /// No description provided for @sectionDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Important dates'**
+  String get sectionDates;
+
+  /// No description provided for @discardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get discardTitle;
+
+  /// No description provided for @actionDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get actionDiscard;
+
+  /// No description provided for @tagSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing tags'**
+  String get tagSuggestions;
+
   /// No description provided for @anniversaryYears.
   ///
   /// In en, this message translates to:

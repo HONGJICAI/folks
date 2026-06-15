@@ -139,6 +139,10 @@
 
   "sectionReminders": "Upcoming",
   "labelBirthday": "Birthday",
+  "sectionDates": "Important dates",
+  "discardTitle": "Discard changes?",
+  "actionDiscard": "Discard",
+  "tagSuggestions": "Existing tags",
   "anniversaryYears": "{n} yr",
   "@anniversaryYears": { "placeholders": { "n": { "type": "int" } } },
   "remindBirthday": "Remind on birthday",

@@ -389,6 +389,15 @@ class FakeRepository implements FolksRepository {
   Future<Event?> getEvent(int id) async => _events[id];
 
   @override
+  Future<List<String>> getAllEventTags() async {
+    final set = <String>{};
+    for (final e in _events.values) {
+      set.addAll(e.tags);
+    }
+    return set.toList()..sort();
+  }
+
+  @override
   Future<List<Event>> searchEvents(String query) async {
     final q = query.trim().toLowerCase();
     final all = _events.values.toList()
